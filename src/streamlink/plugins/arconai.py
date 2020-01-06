@@ -27,9 +27,15 @@ class ArconaiTv(Plugin):
             self.logger.error('No search, text: {0}'.format(
                 text.encode('ascii', 'replace')))
             return
-        url = '{0}://{1}.{2}/{3}/{4}/{5}/{6}.{7}'.format(data[14],
-            data[27].strip("'.split('"), data[23], data[16], data[25],
-            data[26], data[22], data[21])
+        if len(data[25]) == 22:
+            url = '{0}://{1}.{2}/{3}/{4}/{5}/{6}.{7}'.format(data[14],
+                data[27].strip("'.split('"), data[23], data[16], data[25],
+                data[26], data[22], data[21])
+        else:
+            url = '{0}://{1}.{2}/{3}/{4}/{5}/{6}.{7}'.format(data[9],
+                data[16], data[28].strip("'.split('"), data[17], data[25] + '-' + data[26],
+                data[27], data[23], data[22])
+
         self.logger.debug('HLS URL: {0}'.format(url))
         yield 'live', HLSStream(self.session, url, headers=headers)
 
