@@ -113,6 +113,7 @@ itvplayer               itv.com/itvplayer    Yes   Yes   Streams may be geo-rest
 kanal7                  - kanal7.com         Yes   No
                         - tvt.tv.tr
 kanalukraina            kanalukraina.tv      Yes   Yes
+invintus                player.invintus.com  Yes   Yes
 kingkong                kingkong.com.tw      Yes   --
 latina                  latina.pe            Yes   No    Streams may be geo-restricted to Peru.
 linelive                live.line.me         Yes   Yes
@@ -160,6 +161,7 @@ pluzz                   - france.tv          Yes   Yes   Streams may be geo-rest
                         - francetvinfo.fr
 powerapp                powerapp.com.tr      Yes   No
 qq                      live.qq.com          Yes   No
+radiko                  radiko.jp            Yes   Yes   Streams are geo-restricted to Japan.
 radionet                - radio.net          Yes   --
                         - radio.at
                         - radio.de
@@ -173,6 +175,7 @@ radionet                - radio.net          Yes   --
 raiplay                 raiplay.it           Yes   No    Most streams are geo-restricted to Italy.
 reshet                  reshet.tv            Yes   Yes   Streams may be geo-restricted to Israel.
 reuters                 reuters.tv           Yes   Yes
+rotana                  rotana.net           Yes   --    Streams are geo-restricted to Saudi Arabia.
 rtbf                    - rtbf.be/auvio      Yes   Yes   Streams may be geo-restricted to Belgium or Europe.
                         - rtbfradioplayer.be
 rtlxl                   rtlxl.nl             No    Yes   Streams may be geo-restricted to The Netherlands. Livestreams not supported.
@@ -183,7 +186,7 @@ ruv                     ruv.is               Yes   Yes   Streams may be geo-rest
 sbscokr                 play.sbs.co.kr       Yes   No    Streams may be geo-restricted to South Korea.
 schoolism               schoolism.com        --    Yes   Requires a login and a subscription.
 senategov               senate.gov           --    Yes   Supports hearing streams.
-showroom                showroom-live.com    Yes   No    Only RTMP streams are available.
+showroom                showroom-live.com    Yes   No
 skai                    skai.gr              Yes   No    Only embedded youtube live streams are supported
 sportal                 sportal.bg           Yes   No
 sportschau              sportschau.de        Yes   No
@@ -249,8 +252,7 @@ tvrby                   tvr.by               Yes   No    Streams may be geo-rest
 tvrplus                 tvrplus.ro           Yes   No    Streams may be geo-restricted to Romania.
 tvtoya                  tvtoya.pl            Yes   --
 twitcasting             twitcasting.tv       Yes   No
-twitch                  twitch.tv            Yes   Yes   Possible to authenticate for access to
-                                                         subscription streams.
+twitch                  twitch.tv            Yes   Yes
 ustreamtv               - ustream.tv         Yes   Yes
                         - video.ibm.com
 ustvnow                 ustvnow.com          Yes   --    All streams require an account, some streams require a subscription.
