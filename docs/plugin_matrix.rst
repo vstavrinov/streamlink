@@ -115,6 +115,7 @@ kanal7                  - kanal7.com         Yes   No
 kanalukraina            kanalukraina.tv      Yes   Yes
 invintus                player.invintus.com  Yes   Yes
 kingkong                kingkong.com.tw      Yes   --
+kugou                   fanxing.kugou.com    Yes   --
 latina                  latina.pe            Yes   No    Streams may be geo-restricted to Peru.
 linelive                live.line.me         Yes   Yes
 live_russia_tv          live.russia.tv       Yes   --
@@ -180,7 +181,7 @@ rtbf                    - rtbf.be/auvio      Yes   Yes   Streams may be geo-rest
                         - rtbfradioplayer.be
 rtlxl                   rtlxl.nl             No    Yes   Streams may be geo-restricted to The Netherlands. Livestreams not supported.
 rtpplay                 rtp.pt/play          Yes   Yes   Streams may be geo-restricted to Portugal.
-rtve                    rtve.es              Yes   No
+rtve                    rtve.es              Yes   No    Streams may be geo-restricted to Spain.
 rtvs                    rtvs.sk              Yes   No    Streams may be geo-restricted to Slovakia.
 ruv                     ruv.is               Yes   Yes   Streams may be geo-restricted to Iceland.
 sbscokr                 play.sbs.co.kr       Yes   No    Streams may be geo-restricted to South Korea.
@@ -284,7 +285,6 @@ webtv                   web.tv               Yes   --
 welt                    welt.de              Yes   Yes   Streams may be geo-restricted to Germany.
 willax                  willax.tv            Yes   No
 wwenetwork              network.wwe.com      Yes   Yes   Requires an account to access any content.
-younow                  younow.com           Yes   --
 youtube                 - youtube.com        Yes   Yes   Protected videos are not supported.
                         - youtu.be
 yupptv                  yupptv.com           Yes   Yes   Some streams require an account and subscription.
@@ -304,6 +304,7 @@ zattoo                  - zattoo.com         Yes   Yes
                         - www.vtxtv.ch
                         - www.1und1.tv
 zdf_mediathek           zdf.de               Yes   Yes   Streams may be geo-restricted to Germany.
+zeenews                 zeenews.india.com    Yes   No
 zengatv                 zengatv.com          Yes   No
 zhanqi                  zhanqi.tv            Yes   No
 ======================= ==================== ===== ===== ===========================
