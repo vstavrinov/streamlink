@@ -86,7 +86,6 @@ earthcam                earthcam.com         Yes   Yes   Only works for the cams
 egame                   egame.qq.com         Yes   No
 ellobo                  ellobo106.com        Yes   -
 eltrecetv               eltrecetv.com.ar     Yes   Yes   Streams may be geo-restricted to Argentina.
-eurocom                 eurocom.bg           Yes   No
 euronews                euronews.com         Yes   No
 europaplus              europaplus.ru        Yes   --
 facebook                facebook.com         Yes   Yes
@@ -234,7 +233,6 @@ turkuvaz                - atv.com.tr         Yes   No
                         - minikacocuk.com.tr
                         - minikago.com.tr
                         - sabah.com.tr
-tv1channel              tv1channel.org       Yes   No
 tv3cat                  tv3.cat              Yes   Yes   Streams may be geo-restricted to Spain.
 tv4play                 - tv4play.se         Yes   Yes   Streams may be geo-restricted to Sweden.
                                                          Only non-premium streams currently supported.
