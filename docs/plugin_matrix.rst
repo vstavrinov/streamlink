@@ -252,7 +252,7 @@ tvrplus                 tvrplus.ro           Yes   No    Streams may be geo-rest
 tvtoya                  tvtoya.pl            Yes   --
 twitcasting             twitcasting.tv       Yes   No
 twitch                  twitch.tv            Yes   Yes
-ukraina24               ukraina24.segodnya.ua Yes   Yes
+ukraina24               ukraina24.s... [12]_ Yes   Yes
 ustreamtv               - ustream.tv         Yes   Yes
                         - video.ibm.com
 ustvnow                 ustvnow.com          Yes   --    All streams require an account, some streams require a subscription.
@@ -316,3 +316,4 @@ zhanqi                  zhanqi.tv            Yes   No
 .. [9] nettv.netcologne.de
 .. [10] iptv.glattvision.ch
 .. [11] mobiltv.quickline.com
+.. [12] ukraina24.segodnya.ua
