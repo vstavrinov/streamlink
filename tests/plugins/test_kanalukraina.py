@@ -6,7 +6,7 @@ from streamlink.plugins.kanalukraina import KanalUkraina
 class TestPluginKanalUkraina(unittest.TestCase):
     def test_can_handle_url(self):
         should_match = [
-            'https://kanalukraina.tv/'
+            'https://kanalukraina.tv/online'
         ]
         for url in should_match:
             self.assertTrue(KanalUkraina.can_handle_url(url))
