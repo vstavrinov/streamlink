@@ -32,6 +32,7 @@ class HTML_Parser(HTMLParser):
                 self.js = True
 
     def handle_data(self, data):
+        """Identify javascript by a function name. Return script body"""
         if self.js and data.find('function serverShuffle'):
             self.data = data
 
