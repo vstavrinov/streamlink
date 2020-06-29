@@ -19,11 +19,12 @@ _url_re = re.compile("""
         (vaughn.live)|
         ((breakers|instagib|vapers).tv)
         )/.*
-    """
-    , re.VERBOSE)
+    """, re.VERBOSE)
+
 
 class HTML_Parser(HTMLParser):
     js = False
+
     def handle_starttag(self, tag, attrs):
         if tag == 'script':
             attrs = dict(attrs)
@@ -62,27 +63,17 @@ class VaughnStream(HTTPStream):
 
         return fd
 
-class HTML_Parser(HTMLParser):
-    js = False
-    def handle_starttag(self, tag, attrs):
-        if tag == 'script':
-            attrs = dict(attrs)
-            if 'type' in attrs and attrs['type'] == 'text/javascript':
-                self.js = True
-
-    def handle_data(self, data):
-        if self.js and data.find('serverShuffle') > 0:
-            self.data = data
 
 def get_js(html):
     parser = HTML_Parser()
     parser.feed(html)
     try:
         js = parser.data
-    except:
+    except Exception:
         return False
-    parsed = esprima.parseScript(js, { "tolerant": True })
+    parsed = esprima.parseScript(js, {"tolerant": True})
     return parsed.body
+
 
 class VaughnLive(Plugin):
 
@@ -103,27 +94,21 @@ class VaughnLive(Plugin):
             mp4StreamUrl = None
             for node in body:
                 if node.declarations:
-                    if not mp4ServerNode and \
-                        node.declarations[0].id.name ==  "mp4Servers":
+                    if not mp4ServerNode and node.declarations[0].id.name == "mp4Servers":
                         mp4Servers = node.declarations[0].init.elements
                         shuffle(mp4Servers)
                         mp4ServerNode = mp4Servers[0].value
-                
-                    if not mp4StreamName and \
-                        node.declarations[0].id.name ==  "mp4StreamName":
+                    if not mp4StreamName and node.declarations[0].id.name == "mp4StreamName":
                         mp4StreamName = node.declarations[0].init.value
-
-                    if not mp4StreamUrl and \
-                        node.declarations[0].id.name ==  "mp4StreamUrl":
+                    if not mp4StreamUrl and node.declarations[0].id.name == "mp4StreamUrl":
                         mp4StreamUrl = node.declarations[0].init.value
-
                 if mp4ServerNode and mp4StreamName and mp4StreamUrl:
                     break
-
             stream_url = mp4StreamUrl.format(
                 mp4Server=mp4ServerNode, streamName=mp4StreamName)
             log.debug("Stream URL: {0}".format(stream_url))
             stream = VaughnStream(self.session, stream_url)
             yield "live", stream
+
 
 __plugin__ = VaughnLive
