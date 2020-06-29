@@ -23,7 +23,6 @@ albavision              - tvc.com.ec         Yes   No    Some streams are geo-re
 aljazeeraen             aljazeera.com        Yes   Yes   English version of the site.
 animelab                animelab.com         --    Yes   Requires a login. Streams may be geo-restricted to Australia and New Zealand.
 app17                   17app.co             Yes   --
-arconai                 arconaitv.us         Yes   No    maverick
 ard_live                daserste.de          Yes   Yes   Streams may be geo-restricted to Germany.
 ard_mediathek           - ardmediathek.de    Yes   Yes   Streams may be geo-restricted to Germany.
                         - mediathek... [5]_
