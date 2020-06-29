@@ -1,6 +1,6 @@
 import unittest
 
-from streamlink.plugins.kanalukraina import Ukraina24
+from streamlink.plugins.ukraina24 import Ukraina24
 
 
 class TestPluginUkraina24(unittest.TestCase):
