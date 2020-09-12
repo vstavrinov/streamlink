@@ -62,18 +62,23 @@ class KanalUkraina(Plugin):
                 if node.expression:
                     if node.expression.arguments:
                         for item in node.expression.arguments:
-                            if item.properties:
-                                for kind in item.properties:
-                                    if kind.key:
-                                        if kind.key.name:
-                                            if kind.key.name == 'url':
-                                                if urlsplit(kind.value.value).netloc:
-                                                    stream_url = kind.value.value
-                                                else:
-                                                    stream_url = urljoin(self.url, kind.value.value)
-                                                log.debug("Stream URL: {0}".format(stream_url))
-                                                return HLSStream.parse_variant_playlist(self.session, stream_url)
-                                                break
+                            if item.body.body:
+                                for node in item.body.body:
+                                    if node.expression.arguments:
+                                        for item in node.expression.arguments:
+                                            if item.properties:
+                                                for kind in item.properties:
+                                                    if kind.key:
+                                                        if kind.key.name:
+                                                            if kind.key.name == 'url':
+                                                                if urlsplit(kind.value.value).netloc:
+                                                                    stream_url = kind.value.value
+                                                                else:
+                                                                    stream_url = urljoin(self.url, kind.value.value)
+                                                                log.debug("Stream URL: {0}".format(stream_url))
+                                                                return HLSStream.parse_variant_playlist(self.session,
+                                                                                                        stream_url)
+                                                                break
 
 
 __plugin__ = KanalUkraina
