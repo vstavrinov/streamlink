@@ -74,6 +74,7 @@ dogus                   - ntvspor.net        Yes   No
                         - kralmuzik.com.tr
                         - ntv.com.tr
                         - eurostartv.com.tr
+                        - startv.com.tr
 dommune                 dommune.com          Yes   --
 drdk                    dr.dk                Yes   No    Streams may be geo-restricted to Denmark.
 earthcam                earthcam.com         Yes   Yes   Only works for the cams hosted on EarthCam.
@@ -189,7 +190,6 @@ srgssr                  - srf.ch             Yes   No    Streams are geo-restric
                         - rtr.ch
 ssh101                  ssh101.com           Yes   No
 stadium                 watchstadium.com     Yes   No
-startv                  startv.com.tr        Yes   No
 steam                   steamcommunity.com   Yes   No    Some streams will require a Steam account.
 streamable              streamable.com       -     Yes
 streamingvideoprovider  streamingvid... [2]_ Yes   --    RTMP streams requires rtmpdump with
