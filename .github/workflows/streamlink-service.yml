@@ -1,6 +1,6 @@
 name: streamlink-service
 
-on: [push]
+on: [push, workflow_dispatch]
 
 jobs:
   deploy:
