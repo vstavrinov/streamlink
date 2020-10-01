@@ -20,7 +20,6 @@ albavision              - tvc.com.ec         Yes   No    Some streams are geo-re
                         - rts.com.ec
                         - elnueve.com.ar
                         - atv.pe
-aljazeeraen             aljazeera.com        Yes   Yes   English version of the site.
 animelab                animelab.com         --    Yes   Requires a login. Streams may be geo-restricted to Australia and New Zealand.
 app17                   17app.co             Yes   --
 ard_live                daserste.de          Yes   Yes   Streams may be geo-restricted to Germany.
@@ -39,15 +38,14 @@ brightcove              players.brig... [6]_ Yes   Yes
 btsports                sport.bt.com         Yes   Yes   Requires subscription account
 btv                     btvplus.bg           Yes   No    Streams are geo-restricted to Bulgaria.
 canalplus               mycanal.fr           No    Yes   Streams may be geo-restricted to France.
-cdnbg                   - tv.bnt.bg          Yes   No    Streams may be geo-restricted to Bulgaria.
+cdnbg                   - armymedia.bg       Yes   No    Streams may be geo-restricted to Bulgaria
                         - bgonair.bg
                         - bloombergtv.bg
-                        - mmtvmusic.com
-                        - mu-vi.tv
-                        - nova.bg
-                        - armymedia.bg
-                        - chernomore.bg
+                        - bnt.bg
+                        - live.bstv.bg
                         - i.cdn.bg
+                        - nova.bg
+                        - mu-vi.tv
 ceskatelevize           ceskatelevize.cz     Yes   Yes   Streams may be geo-restricted to Czechia.
 cinergroup              - showtv.com.tr      Yes   No
                         - haberturk.com
@@ -119,6 +117,7 @@ lrt                     lrt.lt               Yes   No
 ltv_lsm_lv              ltv.lsm.lv           Yes   No    Streams may be geo-restricted to Latvia.
 mediaklikk              mediaklikk.hu        Yes   No    Streams may be geo-restricted to Hungary.
 metube                  metube.id            Yes   Yes
+mico                    micous.com           Yes   --
 mitele                  mitele.es            Yes   No    Streams may be geo-restricted to Spain.
 mjunoon                 mjunoon.tv           Yes   Yes
 mrtmk                   play.mrt.com.mk      Yes   Yes   Streams may be geo-restricted to North Macedonia.
@@ -234,6 +233,7 @@ tv5monde                - tv5monde.com       Yes   Yes   Streams may be geo-rest
                         - tv5mondepl... [8]_
 tv8                     tv8.com.tr           Yes   No
 tv360                   tv360.com.tr         Yes   No
+tv999                   tv999.bg             Yes   --    Streams are geo-restricted to Bulgaria
 tvibo                   player.tvibo.com     Yes   --
 tvp                     tvpstream.vod.tvp.pl Yes   No    Streams may be geo-restricted to Poland.
 tvplayer                tvplayer.com         Yes   No    Streams may be geo-restricted to Great Britain. Premium streams are not supported.
