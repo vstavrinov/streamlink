@@ -1,15 +1,11 @@
-import re
+from html.parser import HTMLParser
 import logging
+import re
+
+import esprima
 from streamlink.plugin import Plugin
 from streamlink.plugin.api import useragents
 from streamlink.stream import HLSStream
-import esprima
-import sys
-
-if sys.version_info[0] > 2:
-    from html.parser import HTMLParser
-else:
-    from HTMLParser import HTMLParser
 
 log = logging.getLogger(__name__)
 _url_re = re.compile(r'https?://ukraina24.segodnya.ua/online', re.VERBOSE)

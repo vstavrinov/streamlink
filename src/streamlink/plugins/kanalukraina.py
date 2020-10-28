@@ -1,17 +1,13 @@
-import re
+from html.parser import HTMLParser
 import logging
+import re
+from urllib.parse import urljoin, urlsplit
+
+import esprima
 from streamlink.plugin import Plugin
 from streamlink.plugin.api import useragents
 from streamlink.stream import HLSStream
-import esprima
-import sys
 
-if sys.version_info[0] > 2:
-    from html.parser import HTMLParser
-    from urllib.parse import urljoin, urlsplit
-else:
-    from HTMLParser import HTMLParser
-    from urlparse import urljoin, urlsplit
 
 log = logging.getLogger(__name__)
 _url_re = re.compile(r'https?://kanalukraina.tv/online', re.VERBOSE)
