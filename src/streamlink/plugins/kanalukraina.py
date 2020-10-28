@@ -1,6 +1,6 @@
 import logging
-from html.parser import HTMLParser
 import re
+from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
 import esprima
