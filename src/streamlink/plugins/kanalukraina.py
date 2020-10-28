@@ -1,5 +1,5 @@
-from html.parser import HTMLParser
 import logging
+from html.parser import HTMLParser
 import re
 from urllib.parse import urljoin, urlsplit
 
