@@ -3,6 +3,7 @@ import logging
 import re
 
 import esprima
+
 from streamlink.plugin import Plugin
 from streamlink.plugin.api import useragents
 from streamlink.stream import HLSStream
