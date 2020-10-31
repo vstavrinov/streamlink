@@ -103,7 +103,6 @@ idf1                    idf1.fr              Yes   Yes
 ine                     ine.com              ---   Yes
 invintus                player.invintus.com  Yes   Yes
 kanalukraina            kanalukraina.tv      Yes   Yes
-kingkong                kingkong.com.tw      Yes   --
 kugou                   fanxing.kugou.com    Yes   --
 latina                  latina.pe            Yes   No    Streams may be geo-restricted to Peru.
 linelive                live.line.me         Yes   Yes
@@ -179,7 +178,6 @@ sbscokr                 play.sbs.co.kr       Yes   No    Streams may be geo-rest
 schoolism               schoolism.com        --    Yes   Requires a login and a subscription.
 senategov               senate.gov           --    Yes   Supports hearing streams.
 showroom                showroom-live.com    Yes   No
-skai                    skai.gr              Yes   No    Only embedded youtube live streams are supported
 sportal                 sportal.bg           Yes   No
 sportschau              sportschau.de        Yes   No
 ssh101                  ssh101.com           Yes   No
@@ -208,8 +206,6 @@ tga                     - star.plu.cn        Yes   No
 theplatform             player.thepl... [7]_ No    Yes
 tigerdile               tigerdile.com        Yes   --
 tlctr                   tlctv.com.tr         Yes   No
-trt                     trt.net.tr           Yes   No    Some streams may be geo-restricted to Turkey.
-trtspor                 trtspor.com          Yes   No    Some streams are geo-restricted to Turkey.
 turkuvaz                - atv.com.tr         Yes   No    Streams may be geo-restricted.
                         - a2tv.com.tr
                         - ahaber.com.tr
