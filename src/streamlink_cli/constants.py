@@ -2,12 +2,14 @@ import os
 
 from streamlink_cli.compat import is_win32
 
-DEFAULT_PLAYER_ARGUMENTS = u"{filename}"
+PLAYER_ARGS_INPUT_DEFAULT = "playerinput"
+PLAYER_ARGS_INPUT_FALLBACK = "filename"
+
 DEFAULT_STREAM_METADATA = {
-    "title": u"Unknown Title",
-    "author": u"Unknown Author",
-    "category": u"No Category",
-    "game": u"No Game/Category"
+    "title": "Unknown Title",
+    "author": "Unknown Author",
+    "category": "No Category",
+    "game": "No Game/Category"
 }
 # these are the players that streamlink knows how to set the window title for with `--title`.
 # key names are used in help text
@@ -34,6 +36,7 @@ STREAM_SYNONYMS = ["best", "worst", "best-unfiltered", "worst-unfiltered"]
 STREAM_PASSTHROUGH = ["hls", "http", "rtmp"]
 
 __all__ = [
-    "CONFIG_FILES", "DEFAULT_PLAYER_ARGUMENTS",
-    "PLUGINS_DIR", "STREAM_SYNONYMS", "STREAM_PASSTHROUGH"
+    "PLAYER_ARGS_INPUT_DEFAULT", "PLAYER_ARGS_INPUT_FALLBACK",
+    "DEFAULT_STREAM_METADATA", "SUPPORTED_PLAYERS",
+    "CONFIG_FILES", "PLUGINS_DIR", "STREAM_SYNONYMS", "STREAM_PASSTHROUGH"
 ]
