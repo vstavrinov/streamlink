@@ -21,3 +21,13 @@ jobs:
             -H "Authorization: token $TRAVIS_TOKEN" \
             -d "$BODY"                              \
         https://api.travis-ci.org/repo/$TRIGGER_REPO/requests
+    - name: streamlink-service workflow
+      env:
+        STREAMLINK_SERVICE_TOKEN: ${{ secrets.STREAMLINK_SERVICE_TOKEN }}
+        ENDPOINT: "vstavrinov/streamlink-service/actions/workflows/main.yml"
+      run: |
+        curl -s -X POST                                         \
+            -H "Accept: application/vnd.github.v3+json"         \
+            -H "Authorization: token $STREAMLINK_SERVICE_TOKEN" \
+            -d '{"ref": "master"}'                              \
+        https://api.github.com/repos/$ENDPOINT/dispatches
