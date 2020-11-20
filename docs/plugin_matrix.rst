@@ -53,7 +53,6 @@ cinergroup              - showtv.com.tr      Yes   No
 clubbingtv              clubbingtv.com       Yes   Yes   Requires a login.
 cnews                   cnews.fr             Yes   Yes
 crunchyroll             crunchyroll.com      --    Yes
-cubetv                  cube.tv              Yes   --
 dailymotion             dailymotion.com      Yes   Yes
 delfi                   - delfi.lt           --    Yes
                         - delfi.ee
@@ -110,7 +109,6 @@ livestream              livestream.com       Yes   --
 lrt                     lrt.lt               Yes   No
 ltv_lsm_lv              ltv.lsm.lv           Yes   No    Streams may be geo-restricted to Latvia.
 mediaklikk              mediaklikk.hu        Yes   No    Streams may be geo-restricted to Hungary.
-metube                  metube.id            Yes   Yes
 mico                    micous.com           Yes   --
 mitele                  mitele.es            Yes   No    Streams may be geo-restricted to Spain.
 mjunoon                 mjunoon.tv           Yes   Yes
@@ -182,14 +180,12 @@ steam                   steamcommunity.com   Yes   No    Some streams will requi
 streamable              streamable.com       -     Yes
 streamingvideoprovider  streamingvid... [2]_ Yes   --    RTMP streams requires rtmpdump with
                                                          K-S-V patches.
-streamme                stream.me            Yes   --
 streann                 ott.streann.com      Yes   Yes
 stv                     player.stv.tv        Yes   No    Streams are geo-restricted to Great Britain.
 svtplay                 - svtplay.se         Yes   Yes   Streams may be geo-restricted to Sweden.
                         - oppetarkiv.se
 swisstxt                - srf.ch             Yes   No    Streams are geo-restricted to Switzerland.
                         - rsi.ch
-tamago                  player.tamago.live   Yes   --
 teamliquid              - teamliquid.net     Yes   --
                         - tl.net
 teleclubzoom            teleclubzoom.ch      Yes   No    Streams are geo-restricted to Switzerland.
