@@ -20,16 +20,16 @@ class ConsoleUserInputRequester(UserInputRequester):
         if sys.stdin.isatty():
             return self.console.ask(prompt.strip() + ": ")
         else:
-            raise IOError("no TTY available")
+            raise OSError("no TTY available")
 
     def ask_password(self, prompt):
         if sys.stdin.isatty():
             return self.console.askpass(prompt.strip() + ": ")
         else:
-            raise IOError("no TTY available")
+            raise OSError("no TTY available")
 
 
-class ConsoleOutput(object):
+class ConsoleOutput:
     def __init__(self, output, json=False):
         self.json = json
         self.output = output

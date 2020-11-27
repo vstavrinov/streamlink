@@ -31,7 +31,7 @@ class ModuleInfoNoStreams(Exception):
     pass
 
 
-class UHSClient(object):
+class UHSClient:
     """
     API Client, reverse engineered by observing the interactions
     between the web browser and the ustream servers.
@@ -190,7 +190,7 @@ class UHSStreamWriter(SegmentedStreamWriter):
                     return
             else:
                 log.debug(f"Download of chunk {chunk.num} complete")
-        except IOError as err:
+        except OSError as err:
             log.error(f"Failed to read chunk {chunk.num}: {err}")
 
 

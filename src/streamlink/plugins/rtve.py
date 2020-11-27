@@ -15,7 +15,7 @@ from streamlink.utils import parse_xml
 log = logging.getLogger(__name__)
 
 
-class ZTNRClient(object):
+class ZTNRClient:
     base_url = "http://ztnr.rtve.es/ztnr/res/"
     block_size = 16
 
@@ -142,7 +142,7 @@ class Rtve(Plugin):
                     if ".m3u8" in url:
                         try:
                             streams.extend(HLSStream.parse_variant_playlist(self.session, url).items())
-                        except (IOError, OSError) as err:
+                        except OSError as err:
                             log.error(str(err))
                     elif ((url.endswith("mp4") or url.endswith("mov") or url.endswith("avi"))
                           and self.session.http.head(url, raise_for_status=False).status_code == 200):

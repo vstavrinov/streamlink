@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 epoch_start = datetime.datetime(1970, 1, 1, tzinfo=utc)
 
 
-class Segment(object):
+class Segment:
     def __init__(self, url, duration, init=False, content=True, available_at=epoch_start, range=None):
         self.url = url
         self.duration = duration
@@ -74,7 +74,7 @@ def sleep_until(walltime):
         time.sleep(time_to_wait)
 
 
-class MPDParsers(object):
+class MPDParsers:
     @staticmethod
     def bool_str(v):
         return v.lower() == "true"
@@ -133,7 +133,7 @@ class MPDParsingError(Exception):
     pass
 
 
-class MPDNode(object):
+class MPDNode:
     __tag__ = None
 
     def __init__(self, node, root=None, parent=None, *args, **kwargs):
@@ -141,7 +141,7 @@ class MPDNode(object):
         self.root = root
         self.parent = parent
         self._base_url = kwargs.get("base_url")
-        self.attributes = set([])
+        self.attributes = set()
         if self.__tag__ and self.node.tag.lower() != self.__tag__.lower():
             raise MPDParsingError("root tag did not match the expected tag: {}".format(self.__tag__))
 
@@ -504,8 +504,7 @@ class SegmentTemplate(MPDNode):
             available_iter = count_dt(available_start,
                                       step=datetime.timedelta(seconds=self.duration_seconds))
 
-        for number, available_at in zip(number_iter, available_iter):
-            yield number, available_at
+        yield from zip(number_iter, available_iter)
 
     def format_media(self, **kwargs):
         if self.segmentTimeline:

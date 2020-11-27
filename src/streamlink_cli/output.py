@@ -16,7 +16,7 @@ if is_win32:
 log = logging.getLogger("streamlink.cli.output")
 
 
-class Output(object):
+class Output:
     def __init__(self):
         self.opened = False
 
@@ -32,7 +32,7 @@ class Output(object):
 
     def write(self, data):
         if not self.opened:
-            raise IOError("Output is not opened")
+            raise OSError("Output is not opened")
 
         return self._write(data)
 

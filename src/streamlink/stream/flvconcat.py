@@ -34,11 +34,11 @@ def iter_flv_tags(fd=None, buf=None, strict=False, skip_header=False):
                 tag = Tag.deserialize(fd, strict=strict)
             elif buf:
                 tag, offset = Tag.deserialize_from(buf, offset, strict=strict)
-        except (IOError, FLVError) as err:
+        except (OSError, FLVError) as err:
             if "Insufficient tag header" in str(err):
                 break
 
-            raise IOError(err)
+            raise OSError(err)
 
         yield tag
 
@@ -67,7 +67,7 @@ def extract_flv_header_tags(stream):
     return FLVHeaderTags(metadata, aac_header, avc_header)
 
 
-class FLVTagConcat(object):
+class FLVTagConcat:
     def __init__(self, duration=None, tags=[], has_video=True, has_audio=True,
                  flatten_timestamps=False, sync_headers=False):
         self.duration = duration
@@ -93,7 +93,7 @@ class FLVTagConcat(object):
 
     def verify_tag(self, tag):
         if tag.filter:
-            raise IOError("Tag has filter flag set, probably encrypted")
+            raise OSError("Tag has filter flag set, probably encrypted")
 
         # Only AAC and AVC has detectable headers
         if isinstance(tag.data, AudioData) and tag.data.codec != AUDIO_CODEC_ID_AAC:
@@ -193,8 +193,7 @@ class FLVTagConcat(object):
         tags_iterator = filter(None, self.tags)
         flv_iterator = iter_flv_tags(fd=fd, buf=buf, skip_header=skip_header)
 
-        for tag in chain(tags_iterator, flv_iterator):
-            yield tag
+        yield from chain(tags_iterator, flv_iterator)
 
     def iter_chunks(self, fd=None, buf=None, skip_header=None):
         """Reads FLV tags from fd or buf and returns them with adjusted
@@ -253,7 +252,7 @@ class FLVTagConcatWorker(Thread):
 
                     if not self.running:
                         return
-            except IOError as err:
+            except OSError as err:
                 self.error = err
                 break
 
