@@ -90,7 +90,7 @@ Distribution                         Installing
                                         echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee "/etc/apt/sources.list.d/streamlink.list"
 
                                         sudo apt update
-                                        sudo apt install streamlink
+                                        sudo apt -t buster-backports install streamlink
 
                                      `Installing Debian backported packages`_
 
@@ -171,8 +171,7 @@ Solus                                Bryan T. Meyers <bmeyers at datadrake.com>
 Ubuntu                               Alin Andrei <andrew at webupd8.org>
 Void                                 wkuipers <wietse at kuiprs.nl>
 Windows binaries                     beardypig <beardypig at protonmail.com>
-Windows port. version                RosadinTV <RosadinTV at outlook.com> |br|
-                                     beardypig <beardypig at protonmail.com>
+Windows port. version                beardypig <beardypig at protonmail.com>
 ==================================== ===========================================
 
 
@@ -376,18 +375,10 @@ Windows portable version
 ==================================== ===========================================
 Maintainer                           Links
 ==================================== ===========================================
-RosadinTV                            `Latest precompiled stable release`__ |br|
-                                     `Latest builder`__ |br|
-                                     `More info`__
-
 Beardypig                            `Latest precompiled stable release`__ |br|
                                      `Latest builder`__ |br|
                                      `More info`__
 ==================================== ===========================================
-
-__ https://github.com/streamlink/streamlink-portable/releases/latest
-__ https://github.com/streamlink/streamlink-portable/archive/master.zip
-__ https://github.com/streamlink/streamlink-portable
 
 __ https://github.com/beardypig/streamlink-portable/releases/latest
 __ https://github.com/beardypig/streamlink-portable/archive/master.zip

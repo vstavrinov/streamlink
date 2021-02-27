@@ -109,7 +109,7 @@ lrt                     lrt.lt               Yes   No
 ltv_lsm_lv              ltv.lsm.lv           Yes   No    Streams may be geo-restricted to Latvia.
 mediaklikk              mediaklikk.hu        Yes   No    Streams may be geo-restricted to Hungary.
 mitele                  mitele.es            Yes   No    Streams may be geo-restricted to Spain.
-mjunoon                 mjunoon.tv           Yes   Yes
+mjunoon                 mjunoon.tv           Yes   Yes   Streams may be geo-restricted to Pakistan.
 mrtmk                   play.mrt.com.mk      Yes   Yes   Streams may be geo-restricted to North Macedonia.
 n13tv                   13tv.co.il           Yes   Yes   Streams may be geo-restricted to Israel.
 nbc                     nbc.com              No    Yes   Streams are geo-restricted to USA. Authentication is not supported.
@@ -117,6 +117,7 @@ nbcnews                 nbcnews.com          Yes   No
 nbcsports               nbcsports.com        No    Yes   Streams maybe be geo-restricted to USA. Authentication is not supported.
 nhkworld                nhk.or.jp/nhkworld   Yes   No
 nicolive                live.nicovideo.jp    Yes   Yes   Timeshift is supported. Some content may require login.
+nimotv                  nimo.tv              Yes   No
 nos                     nos.nl               Yes   Yes   Streams may be geo-restricted to Netherlands.
 nownews                 news.now.com         Yes   No
 nrk                     - tv.nrk.no          Yes   Yes   Streams may be geo-restricted to Norway.
