@@ -92,7 +92,6 @@ huomao                  - huomao.com         Yes   Yes
                         - huomao.tv
 huya                    huya.com             Yes   No
 idf1                    idf1.fr              Yes   Yes
-ine                     ine.com              ---   Yes
 invintus                player.invintus.com  Yes   Yes
 kanalukraina            kanalukraina.tv      Yes   Yes
 kugou                   fanxing.kugou.com    Yes   --
