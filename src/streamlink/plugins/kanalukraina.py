@@ -73,8 +73,7 @@ class KanalUkraina(Plugin):
                                                                 else:
                                                                     stream_url = urljoin(self.url, kind.value.value)
                                                                 log.debug("Stream URL: {0}".format(stream_url))
-                                                                return HLSStream.parse_variant_playlist(self.session,
-                                                                                                        stream_url)
+                                                                yield "live", HLSStream(self.session, stream_url)
                                                                 break
 
 
