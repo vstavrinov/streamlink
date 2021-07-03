@@ -5,7 +5,6 @@ from html.parser import HTMLParser
 import esprima
 
 from streamlink.plugin import Plugin, pluginmatcher
-from streamlink.plugin.api import useragents
 from streamlink.stream import HLSStream
 
 log = logging.getLogger(__name__)
@@ -45,8 +44,10 @@ class Ukraina24(Plugin):
     def _get_streams(self):
         self.session.http.headers = {
             "Referer": self.url,
-            "User-Agent": useragents.FIREFOX
+            "User-Agent": "Mozilla"
         }
+        # This cookie encodes the user agent above. Don't change them!
+        self.session.http.cookies.set('STC', 'a4f963d2c0680cb534f626ae56a4609d')
         html = self.session.http.get(self.url).text
         if html:
             body = get_js(html)
@@ -63,8 +64,7 @@ class Ukraina24(Plugin):
                                                 if item.key.name and item.key.name == 'source':
                                                     stream_url = item.value.value
                                                     log.debug("Stream URL: {0}".format(stream_url))
-                                                    return HLSStream.parse_variant_playlist(self.session,
-                                                                                            stream_url)
+                                                    yield "live", HLSStream(self.session, stream_url)
 
 
 __plugin__ = Ukraina24
