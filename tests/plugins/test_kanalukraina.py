@@ -4,16 +4,12 @@ from streamlink.plugins.kanalukraina import KanalUkraina
 
 
 class TestPluginKanalUkraina(unittest.TestCase):
-    def test_can_handle_url(self):
-        should_match = [
-            'https://kanalukraina.tv/online'
-        ]
-        for url in should_match:
-            self.assertTrue(KanalUkraina.can_handle_url(url))
+    __plugin__ = KanalUkraina
 
-    def test_can_handle_url_negative(self):
-        should_not_match = [
-            'https://video.oz/'
-        ]
-        for url in should_not_match:
-            self.assertFalse(KanalUkraina.can_handle_url(url))
+    should_match = [
+        'https://kanalukraina.tv/online'
+    ]
+
+    should_not_match = [
+        'https://kanalukraina.tv'
+    ]

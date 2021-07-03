@@ -5,13 +5,12 @@ from urllib.parse import urljoin, urlsplit
 
 import esprima
 
-from streamlink.plugin import Plugin
+from streamlink.plugin import Plugin, pluginmatcher
 from streamlink.plugin.api import useragents
 from streamlink.stream import HLSStream
 
 
 log = logging.getLogger(__name__)
-_url_re = re.compile(r'https?://kanalukraina.tv/online', re.VERBOSE)
 
 
 class HTML_Parser(HTMLParser):
@@ -40,11 +39,10 @@ def get_js(html):
     return parsed.body
 
 
+@pluginmatcher(re.compile(
+    r'https?://kanalukraina.tv/online'
+))
 class KanalUkraina(Plugin):
-
-    @classmethod
-    def can_handle_url(cls, url):
-        return _url_re.match(url)
 
     def _get_streams(self):
         self.session.http.headers = {
