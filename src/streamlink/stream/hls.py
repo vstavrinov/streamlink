@@ -31,19 +31,15 @@ class Sequence(NamedTuple):
 
 
 class HLSStreamWriter(SegmentedStreamWriter):
-    def __init__(self, reader, *args, **kwargs):
-        options = reader.stream.session.options
-        kwargs["retries"] = options.get("hls-segment-attempts")
-        kwargs["threads"] = options.get("hls-segment-threads")
-        kwargs["timeout"] = options.get("hls-segment-timeout")
-        super().__init__(reader, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = self.session.options
 
         self.byterange_offsets = defaultdict(int)
-        self.map_cache: LRUCache[Sequence.segment.map.uri, Future] = LRUCache(kwargs["threads"])
+        self.map_cache: LRUCache[Sequence.segment.map.uri, Future] = LRUCache(self.threads)
         self.key_data = None
         self.key_uri = None
         self.key_uri_override = options.get("hls-segment-key-uri")
-        self.stream_data = options.get("hls-segment-stream-data")
 
         self.ignore_names = False
         ignore_names = {*options.get("hls-segment-ignore-names")}
@@ -131,13 +127,13 @@ class HLSStreamWriter(SegmentedStreamWriter):
 
     def fetch(self, sequence: Sequence) -> Optional[Response]:
         try:
-            return self._fetch(sequence.segment, self.stream_data and not sequence.segment.key)
+            return self._fetch(sequence.segment, not sequence.segment.key)
         except StreamError as err:  # pragma: no cover
             log.error(f"Failed to fetch segment {sequence.num}: {err}")
 
     def fetch_map(self, sequence: Sequence) -> Optional[Response]:
         try:
-            return self._fetch(sequence.segment.map, self.stream_data and not sequence.segment.key)
+            return self._fetch(sequence.segment.map, False)
         except StreamError as err:  # pragma: no cover
             log.error(f"Failed to fetch map for segment {sequence.num}: {err}")
 
@@ -380,9 +376,7 @@ class HLSStreamReader(SegmentedStreamReader):
         self.filter_event = Event()
         self.filter_event.set()
 
-        timeout = stream.session.options.get("hls-timeout")
-
-        super().__init__(stream, timeout)
+        super().__init__(stream)
 
     def read(self, size):
         while True:

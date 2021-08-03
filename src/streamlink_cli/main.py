@@ -741,96 +741,74 @@ def setup_options():
     """Sets Streamlink options."""
     if args.interface:
         streamlink.set_option("interface", args.interface)
-
     if args.ipv4:
         streamlink.set_option("ipv4", args.ipv4)
-
     if args.ipv6:
         streamlink.set_option("ipv6", args.ipv6)
 
-    if args.hls_live_edge:
-        streamlink.set_option("hls-live-edge", args.hls_live_edge)
-
-    if args.hls_segment_stream_data:
-        streamlink.set_option("hls-segment-stream-data", args.hls_segment_stream_data)
-
-    if args.hls_segment_attempts:
-        streamlink.set_option("hls-segment-attempts", args.hls_segment_attempts)
-
-    if args.hls_playlist_reload_attempts:
-        streamlink.set_option("hls-playlist-reload-attempts", args.hls_playlist_reload_attempts)
-
-    if args.hls_playlist_reload_time:
-        streamlink.set_option("hls-playlist-reload-time", args.hls_playlist_reload_time)
-
-    if args.hls_segment_threads:
-        streamlink.set_option("hls-segment-threads", args.hls_segment_threads)
-
-    if args.hls_segment_timeout:
-        streamlink.set_option("hls-segment-timeout", args.hls_segment_timeout)
-
-    if args.hls_segment_ignore_names:
-        streamlink.set_option("hls-segment-ignore-names", args.hls_segment_ignore_names)
-
-    if args.hls_segment_key_uri:
-        streamlink.set_option("hls-segment-key-uri", args.hls_segment_key_uri)
-
-    if args.hls_timeout:
-        streamlink.set_option("hls-timeout", args.hls_timeout)
-
-    if args.hls_audio_select:
-        streamlink.set_option("hls-audio-select", args.hls_audio_select)
-
-    if args.hls_start_offset:
-        streamlink.set_option("hls-start-offset", args.hls_start_offset)
-
-    if args.hls_duration:
-        streamlink.set_option("hls-duration", args.hls_duration)
-
-    if args.hls_live_restart:
-        streamlink.set_option("hls-live-restart", args.hls_live_restart)
+    if args.ringbuffer_size:
+        streamlink.set_option("ringbuffer-size", args.ringbuffer_size)
+    if args.mux_subtitles:
+        streamlink.set_option("mux-subtitles", args.mux_subtitles)
 
     if args.hds_live_edge:
         streamlink.set_option("hds-live-edge", args.hds_live_edge)
 
-    if args.hds_segment_attempts:
-        streamlink.set_option("hds-segment-attempts", args.hds_segment_attempts)
-
-    if args.hds_segment_threads:
-        streamlink.set_option("hds-segment-threads", args.hds_segment_threads)
-
-    if args.hds_segment_timeout:
-        streamlink.set_option("hds-segment-timeout", args.hds_segment_timeout)
-
-    if args.hds_timeout:
-        streamlink.set_option("hds-timeout", args.hds_timeout)
-
-    if args.http_stream_timeout:
-        streamlink.set_option("http-stream-timeout", args.http_stream_timeout)
-
-    if args.ringbuffer_size:
-        streamlink.set_option("ringbuffer-size", args.ringbuffer_size)
-
-    if args.rtmp_proxy:
-        streamlink.set_option("rtmp-proxy", args.rtmp_proxy)
+    if args.hls_live_edge:
+        streamlink.set_option("hls-live-edge", args.hls_live_edge)
+    if args.hls_playlist_reload_attempts:
+        streamlink.set_option("hls-playlist-reload-attempts", args.hls_playlist_reload_attempts)
+    if args.hls_playlist_reload_time:
+        streamlink.set_option("hls-playlist-reload-time", args.hls_playlist_reload_time)
+    if args.hls_segment_ignore_names:
+        streamlink.set_option("hls-segment-ignore-names", args.hls_segment_ignore_names)
+    if args.hls_segment_key_uri:
+        streamlink.set_option("hls-segment-key-uri", args.hls_segment_key_uri)
+    if args.hls_audio_select:
+        streamlink.set_option("hls-audio-select", args.hls_audio_select)
+    if args.hls_start_offset:
+        streamlink.set_option("hls-start-offset", args.hls_start_offset)
+    if args.hls_duration:
+        streamlink.set_option("hls-duration", args.hls_duration)
+    if args.hls_live_restart:
+        streamlink.set_option("hls-live-restart", args.hls_live_restart)
 
     if args.rtmp_rtmpdump:
         streamlink.set_option("rtmp-rtmpdump", args.rtmp_rtmpdump)
     elif args.rtmpdump:
         streamlink.set_option("rtmp-rtmpdump", args.rtmpdump)
+    if args.rtmp_proxy:
+        streamlink.set_option("rtmp-proxy", args.rtmp_proxy)
 
+    # deprecated
+    if args.hds_segment_attempts:
+        streamlink.set_option("hds-segment-attempts", args.hds_segment_attempts)
+    if args.hds_segment_threads:
+        streamlink.set_option("hds-segment-threads", args.hds_segment_threads)
+    if args.hds_segment_timeout:
+        streamlink.set_option("hds-segment-timeout", args.hds_segment_timeout)
+    if args.hds_timeout:
+        streamlink.set_option("hds-timeout", args.hds_timeout)
+    if args.hls_segment_attempts:
+        streamlink.set_option("hls-segment-attempts", args.hls_segment_attempts)
+    if args.hls_segment_threads:
+        streamlink.set_option("hls-segment-threads", args.hls_segment_threads)
+    if args.hls_segment_timeout:
+        streamlink.set_option("hls-segment-timeout", args.hls_segment_timeout)
+    if args.hls_timeout:
+        streamlink.set_option("hls-timeout", args.hls_timeout)
+    if args.http_stream_timeout:
+        streamlink.set_option("http-stream-timeout", args.http_stream_timeout)
     if args.rtmp_timeout:
         streamlink.set_option("rtmp-timeout", args.rtmp_timeout)
 
+    # generic stream- arguments take precedence over deprecated stream-type arguments
     if args.stream_segment_attempts:
         streamlink.set_option("stream-segment-attempts", args.stream_segment_attempts)
-
     if args.stream_segment_threads:
         streamlink.set_option("stream-segment-threads", args.stream_segment_threads)
-
     if args.stream_segment_timeout:
         streamlink.set_option("stream-segment-timeout", args.stream_segment_timeout)
-
     if args.stream_timeout:
         streamlink.set_option("stream-timeout", args.stream_timeout)
 
@@ -850,9 +828,6 @@ def setup_options():
         streamlink.set_option("ffmpeg-copyts", args.ffmpeg_copyts)
     if args.ffmpeg_start_at_zero:
         streamlink.set_option("ffmpeg-start-at-zero", args.ffmpeg_start_at_zero)
-
-    if args.mux_subtitles:
-        streamlink.set_option("mux-subtitles", args.mux_subtitles)
 
     streamlink.set_option("subprocess-errorlog", args.subprocess_errorlog)
     streamlink.set_option("subprocess-errorlog-path", args.subprocess_errorlog_path)
