@@ -208,7 +208,7 @@ tvrplus                 tvrplus.ro           Yes   No    Streams may be geo-rest
 tvtoya                  tvtoya.pl            Yes   --
 twitcasting             twitcasting.tv       Yes   No
 twitch                  twitch.tv            Yes   Yes
-ukraina24               ukraina24.s... [12]_ Yes   Yes
+ukraina24               ukraina24.s... [9]_ Yes   Yes
 ustreamtv               - ustream.tv         Yes   Yes
                         - video.ibm.com
 ustvnow                 ustvnow.com          Yes   --    All streams require an account, some streams require a subscription.
@@ -237,21 +237,7 @@ wwenetwork              network.wwe.com      Yes   Yes   Requires an account to 
 youtube                 - youtube.com        Yes   Yes   Protected videos are not supported.
                         - youtu.be
 yupptv                  yupptv.com           Yes   Yes   Some streams require an account and subscription.
-zattoo                  - zattoo.com         Yes   Yes
-                        - nettv.net... [9]_
-                        - tvonline.ewe.de
-                        - iptv.glat... [10]_
-                        - mobiltv.q... [11]_
-                        - player.waly.tv
-                        - tvplus.m-net.de
-                        - www.bbv-tv.net
-                        - www.meinewelt.cc
-                        - www.myvisiontv.ch
-                        - www.netplus.tv
-                        - www.quantum-tv.com
-                        - www.saktv.ch
-                        - www.vtxtv.ch
-                        - www.1und1.tv
+zattoo                  zattoo.com           Yes   Yes   Other sub-providers are also available. 
 zdf_mediathek           zdf.de               Yes   Yes   Streams may be geo-restricted to Germany.
 zeenews                 zeenews.india.com    Yes   No
 zengatv                 zengatv.com          Yes   No
@@ -263,7 +249,4 @@ zhanqi                  zhanqi.tv            Yes   No
 .. [6] players.brightcove.net
 .. [7] player.theplatform.com
 .. [8] tv5mondeplusafrique.com
-.. [9] nettv.netcologne.de
-.. [10] iptv.glattvision.ch
-.. [11] mobiltv.quickline.com
-.. [12] ukraina24.segodnya.ua
+.. [9] ukraina24.segodnya.ua
