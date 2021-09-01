@@ -24,11 +24,19 @@ from urllib.parse import urlparse
 from lxml.etree import Element, iselement
 
 from streamlink.exceptions import PluginError
+from streamlink.utils.parse import (
+    parse_html as _parse_html,
+    parse_json as _parse_json,
+    parse_qsd as _parse_qsd,
+    parse_xml as _parse_xml
+)
+
 
 __all__ = [
     "any", "all", "filter", "get", "getattr", "hasattr", "length", "optional",
     "transform", "text", "union", "union_get", "url", "startswith", "endswith", "contains",
     "xml_element", "xml_find", "xml_findall", "xml_findtext", "xml_xpath", "xml_xpath_string",
+    "parse_json", "parse_html", "parse_xml", "parse_qsd",
     "validate", "Schema", "SchemaContainer"
 ]
 
@@ -69,8 +77,10 @@ class SchemaContainer:
 class transform:
     """Applies function to value to transform it."""
 
-    def __init__(self, func):
+    def __init__(self, func, *args, **kwargs):
         self.func = func
+        self.args = args
+        self.kwargs = kwargs
 
 
 class optional:
@@ -101,6 +111,9 @@ class xml_element:
         self.tag = tag
         self.text = text
         self.attrib = attrib
+
+
+# ----
 
 
 def length(length):
@@ -315,6 +328,25 @@ def xml_xpath_string(xpath):
     return xml_xpath(f"string({xpath})")
 
 
+def parse_json(*args, **kwargs):
+    return transform(_parse_json, *args, **kwargs, exception=ValueError, schema=None)
+
+
+def parse_html(*args, **kwargs):
+    return transform(_parse_html, *args, **kwargs, exception=ValueError, schema=None)
+
+
+def parse_xml(*args, **kwargs):
+    return transform(_parse_xml, *args, **kwargs, exception=ValueError, schema=None)
+
+
+def parse_qsd(*args, **kwargs):
+    return transform(_parse_qsd, *args, **kwargs, exception=ValueError, schema=None)
+
+
+# ----
+
+
 @singledispatch
 def validate(schema, value):
     if callable(schema):
@@ -351,9 +383,9 @@ def validate_all(schemas, value):
 
 
 @validate.register(transform)
-def validate_transform(schema, value):
+def validate_transform(schema: transform, value):
     validate(callable, schema.func)
-    return schema.func(value)
+    return schema.func(value, *schema.args, **schema.kwargs)
 
 
 @validate.register(list)
