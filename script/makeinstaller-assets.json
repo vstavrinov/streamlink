@@ -1,0 +1,42 @@
+[
+    {
+        "url": "https://github.com/streamlink/FFmpeg-Builds/releases/download/20210826-1/ffmpeg-n4.4-80-gbf87bdd3f6-win32-gpl-4.4.zip",
+        "sha256": "38af31a76b233cf0e83645e19c6dc758f8236981533ed3427424b9fb09285d29",
+        "filename": "ffmpeg-n4.4-80-gbf87bdd3f6-win32-gpl-4.4.zip",
+        "type": "zip",
+        "sourcedir": "ffmpeg-n4.4-80-gbf87bdd3f6-win32-gpl-4.4",
+        "targetdir": "ffmpeg",
+        "files": [
+            {
+                "from": "bin/ffmpeg.exe",
+                "to": "ffmpeg.exe"
+            },
+            {
+                "from": "LICENSE.txt",
+                "to": "LICENSE.txt"
+            },
+            {
+                "from": "BUILDINFO.txt",
+                "to": "BUILDINFO.txt"
+            }
+        ]
+    },
+    {
+        "url": "https://github.com/streamlink/streamlink-assets/releases/download/2020.4.21/rtmpdump-2.3-windows.zip",
+        "sha256": "6948aa372f04952d5675917c6ca2c7c0bf6b109de21a4323adc93247fff0189f",
+        "filename": "rtmpdump-2.3-windows.zip",
+        "type": "zip",
+        "sourcedir": "rtmpdump-2.3",
+        "targetdir": "rtmpdump",
+        "files": [
+            {
+                "from": "rtmpdump.exe",
+                "to": "rtmpdump.exe"
+            },
+            {
+                "from": "COPYING",
+                "to": "LICENSE.txt"
+            }
+        ]
+    }
+]
