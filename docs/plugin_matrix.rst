@@ -24,8 +24,8 @@ ard_mediathek           - ardmediathek.de    Yes   Yes   Streams may be geo-rest
 artetv                  arte.tv              Yes   Yes
 atresplayer             atresplayer.com      Yes   No    Streams are geo-restricted to Spain.
 bbciplayer              bbc.co.uk/iplayer    Yes   Yes   Streams may be geo-restricted to the United Kingdom.
-bfmtv                   bfmtv.com            Yes   Yes
-                        01net.com
+bfmtv                   - bfmtv.com          Yes   Yes
+                        - 01net.com
 bigo                    - live.bigo.tv       Yes   --
                         - bigoweb.co
 bilibili                live.bilibili.com    Yes   ?
@@ -127,8 +127,6 @@ piczel                  piczel.tv            Yes   No
 pixiv                   sketch.pixiv.net     Yes   --
 pluto                   pluto.tv             Yes   Yes
 pluzz                   - france.tv          Yes   Yes   Streams may be geo-restricted to France, Andorra and Monaco.
-                        - ludo.fr
-                        - zouzous.fr
                         - francetvinfo.fr
 qq                      live.qq.com          Yes   No
 radiko                  radiko.jp            Yes   Yes   Streams are geo-restricted to Japan.
@@ -220,7 +218,6 @@ viasat                  - juicyplay.dk       Yes   Yes   Streams may be geo-rest
 vidio                   vidio.com            Yes   Yes
 vimeo                   vimeo.com            Yes   Yes   Password-protected videos are not supported.
 vinhlongtv              thvli.vn             Yes   No    Streams are geo-restricted to Vietnam
-viutv                   viu.tv               Yes   No    Streams are geo-restricted to Hong Kong
 vk                      vk.com               Yes   Yes
 vlive                   vlive.tv             Yes   No    Embedded Naver VODs are not supported.
 vrtbe                   vrt.be/vrtnu         Yes   Yes
