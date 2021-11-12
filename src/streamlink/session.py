@@ -3,7 +3,7 @@ import pkgutil
 from collections import OrderedDict
 from functools import lru_cache
 from socket import AF_INET, AF_INET6
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Tuple, Type
 
 import requests
 import requests.packages.urllib3.util.connection as urllib3_connection
@@ -39,7 +39,6 @@ class Streamlink:
             "interface": None,
             "ipv4": False,
             "ipv6": False,
-            "hds-live-edge": 10.0,
             "hls-live-edge": 3,
             "hls-segment-ignore-names": [],
             "hls-segment-stream-data": False,
@@ -88,9 +87,6 @@ class Streamlink:
                                  This option overrides ipv6, default: ``False``
         ipv6                     (bool) Resolve address names to IPv6 only.
                                  This option overrides ipv4, default: ``False``
-        hds-live-edge            (float) Specify the time live HDS
-                                 streams will start from the edge of
-                                 stream, default: ``10.0``
 
         hls-live-edge            (int) How many segments from the end
                                  to start live streams on, default: ``3``
@@ -270,17 +266,17 @@ class Streamlink:
         elif key == "http-timeout":
             self.http.timeout = value
 
-        # deprecated: {dash,hds,hls}-segment-attempts
-        elif key in ("dash-segment-attempts", "hds-segment-attempts", "hls-segment-attempts"):
+        # deprecated: {dash,hls}-segment-attempts
+        elif key in ("dash-segment-attempts", "hls-segment-attempts"):
             self.options.set("stream-segment-attempts", int(value))
-        # deprecated: {dash,hds,hls}-segment-threads
-        elif key in ("dash-segment-threads", "hds-segment-threads", "hls-segment-threads"):
+        # deprecated: {dash,hls}-segment-threads
+        elif key in ("dash-segment-threads", "hls-segment-threads"):
             self.options.set("stream-segment-threads", int(value))
-        # deprecated: {dash,hds,hls}-segment-timeout
-        elif key in ("dash-segment-timeout", "hds-segment-timeout", "hls-segment-timeout"):
+        # deprecated: {dash,hls}-segment-timeout
+        elif key in ("dash-segment-timeout", "hls-segment-timeout"):
             self.options.set("stream-segment-timeout", float(value))
-        # deprecated: {hds,hls,rtmp,dash,http-stream}-timeout
-        elif key in ("dash-timeout", "hds-timeout", "hls-timeout", "http-stream-timeout", "rtmp-timeout"):
+        # deprecated: {hls,rtmp,dash,http-stream}-timeout
+        elif key in ("dash-timeout", "hls-timeout", "http-stream-timeout", "rtmp-timeout"):
             self.options.set("stream-timeout", float(value))
 
         else:
@@ -341,10 +337,10 @@ class Streamlink:
             return plugin.get_option(key)
 
     @lru_cache(maxsize=128)
-    def resolve_url(self, url: str, follow_redirect: bool = True) -> Plugin:
+    def resolve_url(self, url: str, follow_redirect: bool = True) -> Tuple[Type[Plugin], str]:
         """Attempts to find a plugin that can use this URL.
 
-        The default protocol (http) will be prefixed to the URL if
+        The default protocol (https) will be prefixed to the URL if
         not specified.
 
         Raises :exc:`NoPluginError` on failure.
@@ -373,11 +369,12 @@ class Streamlink:
                     priority = prio
 
         if candidate:
-            return candidate(url)
+            return candidate, url
 
         if follow_redirect:
             # Attempt to handle a redirect URL
             try:
+                # noinspection PyArgumentList
                 res = self.http.head(url, allow_redirects=True, acceptable_status=[501])
 
                 # Fall back to GET request if server doesn't handle HEAD.
@@ -391,10 +388,10 @@ class Streamlink:
 
         raise NoPluginError
 
-    def resolve_url_no_redirect(self, url):
+    def resolve_url_no_redirect(self, url: str) -> Tuple[Type[Plugin], str]:
         """Attempts to find a plugin that can use this URL.
 
-        The default protocol (http) will be prefixed to the URL if
+        The default protocol (https) will be prefixed to the URL if
         not specified.
 
         Raises :exc:`NoPluginError` on failure.
@@ -404,7 +401,7 @@ class Streamlink:
         """
         return self.resolve_url(url, follow_redirect=False)
 
-    def streams(self, url, **params):
+    def streams(self, url: str, **params):
         """Attempts to find a plugin and extract streams from the *url*.
 
         *params* are passed to :func:`Plugin.streams`.
@@ -412,7 +409,9 @@ class Streamlink:
         Raises :exc:`NoPluginError` if no plugin is found.
         """
 
-        plugin = self.resolve_url(url)
+        pluginclass, resolved_url = self.resolve_url(url)
+        plugin = pluginclass(resolved_url)
+
         return plugin.streams(**params)
 
     def get_plugins(self):

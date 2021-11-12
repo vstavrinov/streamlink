@@ -13,7 +13,7 @@ from gettext import gettext
 from itertools import chain
 from pathlib import Path
 from time import sleep
-from typing import List
+from typing import Dict, List, Type
 
 import requests
 from socks import __version__ as socks_version
@@ -24,7 +24,7 @@ from streamlink import NoPluginError, PluginError, StreamError, Streamlink, __ve
 from streamlink.cache import Cache
 from streamlink.exceptions import FatalPluginError
 from streamlink.plugin import Plugin, PluginOptions
-from streamlink.stream.stream import StreamIO
+from streamlink.stream.stream import Stream, StreamIO
 from streamlink.stream.streamprocess import StreamProcess
 from streamlink.utils.named_pipe import NamedPipe
 from streamlink_cli.argparser import build_parser
@@ -44,9 +44,10 @@ QUIET_OPTIONS = ("json", "stream_url", "subprocess_cmdline", "quiet")
 args = None
 console: ConsoleOutput = None
 output: Output = None
-plugin: Plugin = None
 stream_fd: StreamIO = None
 streamlink: Streamlink = None
+
+Streams = Dict[str, Stream]
 
 log = logging.getLogger("streamlink.cli")
 
@@ -174,7 +175,7 @@ def iter_http_requests(server, player):
             continue
 
 
-def output_stream_http(plugin, initial_streams, formatter: Formatter, external=False, port=0):
+def output_stream_http(plugin: Plugin, initial_streams: Streams, formatter: Formatter, external=False, port=0):
     """Continuously output the stream over HTTP."""
     global output
 
@@ -395,7 +396,7 @@ def read_stream(stream, output, prebuffer, formatter: Formatter, chunk_size=8192
         log.info("Stream ended")
 
 
-def handle_stream(plugin, streams, stream_name):
+def handle_stream(plugin: Plugin, streams: Streams, stream_name: str) -> None:
     """Decides what to do with the selected stream.
 
     Depending on arguments it can be one of these:
@@ -465,14 +466,14 @@ def handle_stream(plugin, streams, stream_name):
                 break
 
 
-def fetch_streams(plugin):
+def fetch_streams(plugin: Plugin) -> Streams:
     """Fetches streams using correct parameters."""
 
     return plugin.streams(stream_types=args.stream_types,
                           sorting_excludes=args.stream_sorting_excludes)
 
 
-def fetch_streams_with_retry(plugin, interval, count):
+def fetch_streams_with_retry(plugin: Plugin, interval: float, count: int) -> Streams:
     """Attempts to fetch streams repeatedly
        until some are returned or limit hit."""
 
@@ -504,7 +505,7 @@ def fetch_streams_with_retry(plugin, interval, count):
     return streams
 
 
-def resolve_stream_name(streams, stream_name):
+def resolve_stream_name(streams: Streams, stream_name: str) -> str:
     """Returns the real stream name of a synonym."""
 
     if stream_name in STREAM_SYNONYMS and stream_name in streams:
@@ -515,7 +516,7 @@ def resolve_stream_name(streams, stream_name):
     return stream_name
 
 
-def format_valid_streams(plugin, streams):
+def format_valid_streams(plugin: Plugin, streams: Streams) -> str:
     """Formats a dict of streams.
 
     Filters out synonyms and displays them next to
@@ -560,8 +561,9 @@ def handle_url():
     """
 
     try:
-        plugin = streamlink.resolve_url(args.url)
-        setup_plugin_options(streamlink, plugin)
+        pluginclass, resolved_url = streamlink.resolve_url(args.url)
+        setup_plugin_options(streamlink, pluginclass)
+        plugin = pluginclass(resolved_url)
         log.info(f"Found matching plugin {plugin.module} for URL {args.url}")
 
         if args.retry_max or args.retry_streams:
@@ -571,8 +573,7 @@ def handle_url():
                 retry_streams = args.retry_streams
             if args.retry_max:
                 retry_max = args.retry_max
-            streams = fetch_streams_with_retry(plugin, retry_streams,
-                                               retry_max)
+            streams = fetch_streams_with_retry(plugin, retry_streams, retry_max)
         else:
             streams = fetch_streams(plugin)
     except NoPluginError:
@@ -683,9 +684,9 @@ def setup_config_args(parser, ignore_unknown=False):
     if streamlink and args.url:
         # Only load first available plugin config
         with ignored(NoPluginError):
-            plugin = streamlink.resolve_url(args.url)
+            pluginclass, resolved_url = streamlink.resolve_url(args.url)
             for config_file in CONFIG_FILES:
-                config_file = config_file.with_name(f"{config_file.name}.{plugin.module}")
+                config_file = config_file.with_name(f"{config_file.name}.{pluginclass.module}")
                 if not config_file.is_file():
                     continue
                 if type(config_file) is DeprecatedPath:
@@ -767,9 +768,6 @@ def setup_options():
     if args.mux_subtitles:
         streamlink.set_option("mux-subtitles", args.mux_subtitles)
 
-    if args.hds_live_edge:
-        streamlink.set_option("hds-live-edge", args.hds_live_edge)
-
     if args.hls_live_edge:
         streamlink.set_option("hls-live-edge", args.hls_live_edge)
     if args.hls_segment_stream_data:
@@ -800,14 +798,6 @@ def setup_options():
         streamlink.set_option("rtmp-proxy", args.rtmp_proxy)
 
     # deprecated
-    if args.hds_segment_attempts:
-        streamlink.set_option("hds-segment-attempts", args.hds_segment_attempts)
-    if args.hds_segment_threads:
-        streamlink.set_option("hds-segment-threads", args.hds_segment_threads)
-    if args.hds_segment_timeout:
-        streamlink.set_option("hds-segment-timeout", args.hds_segment_timeout)
-    if args.hds_timeout:
-        streamlink.set_option("hds-timeout", args.hds_timeout)
     if args.hls_segment_attempts:
         streamlink.set_option("hls-segment-attempts", args.hls_segment_attempts)
     if args.hls_segment_threads:
@@ -881,7 +871,7 @@ def setup_plugin_args(session, parser):
         plugin.options = PluginOptions(defaults)
 
 
-def setup_plugin_options(session, plugin):
+def setup_plugin_options(session: Streamlink, plugin: Type[Plugin]):
     """Sets Streamlink plugin options."""
     pname = plugin.module
     required = OrderedDict({})
