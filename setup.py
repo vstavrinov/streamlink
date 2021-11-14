@@ -43,12 +43,9 @@ deps = [
     "lxml>=4.6.4,<5.0",
     "pycryptodome>=3.4.3,<4",
     "PySocks!=1.5.7,>=1.5.6",
-<<<<<<< HEAD
-    'esprima'
-=======
     "requests>=2.26.0,<3.0",
     "websocket-client>=1.2.1,<2.0",
->>>>>>> 9d371d9f3d9b5ad99569f71268c4c77785d07a42
+    'esprima'
 ]
 
 # for localization
