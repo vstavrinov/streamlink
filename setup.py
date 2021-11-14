@@ -39,21 +39,17 @@ if "test" in argv:
 
 
 deps = [
-    "requests>=2.26.0,<3.0",
     "isodate",
     "lxml>=4.6.4,<5.0",
-    "websocket-client>=1.2.1,<2.0",
-    # Support for SOCKS proxies
+    "pycryptodome>=3.4.3,<4",
     "PySocks!=1.5.7,>=1.5.6",
+<<<<<<< HEAD
     'esprima'
+=======
+    "requests>=2.26.0,<3.0",
+    "websocket-client>=1.2.1,<2.0",
+>>>>>>> 9d371d9f3d9b5ad99569f71268c4c77785d07a42
 ]
-
-# for encrypted streams
-if environ.get("STREAMLINK_USE_PYCRYPTO"):
-    deps.append("pycrypto")
-else:
-    # this version of pycryptodome is known to work and has a Windows wheel for py2.7, py3.3-3.6
-    deps.append("pycryptodome>=3.4.3,<4")
 
 # for localization
 if environ.get("STREAMLINK_USE_PYCOUNTRY"):
