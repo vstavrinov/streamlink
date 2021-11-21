@@ -1,8 +1,9 @@
 import json
 import logging
 import re
-from collections import namedtuple
+from datetime import datetime
 from random import random
+from typing import List, NamedTuple, Optional
 from urllib.parse import urlparse
 
 import requests
@@ -11,7 +12,7 @@ from streamlink.exceptions import NoStreamsError, PluginError
 from streamlink.plugin import Plugin, PluginArgument, PluginArguments, pluginmatcher
 from streamlink.plugin.api import validate
 from streamlink.stream.hls import HLSStream, HLSStreamReader, HLSStreamWorker, HLSStreamWriter
-from streamlink.stream.hls_playlist import M3U8, M3U8Parser, load as load_hls_playlist
+from streamlink.stream.hls_playlist import ByteRange, ExtInf, Key, M3U8, M3U8Parser, Map, load as load_hls_playlist
 from streamlink.stream.http import HTTPStream
 from streamlink.utils.args import keyvalue
 from streamlink.utils.parse import parse_json, parse_qsd
@@ -20,22 +21,53 @@ from streamlink.utils.url import update_qsd
 
 log = logging.getLogger(__name__)
 
-Segment = namedtuple("Segment", "uri duration title key discontinuity ad byterange date map prefetch")
-
 LOW_LATENCY_MAX_LIVE_EDGE = 2
 
 
+class TwitchSegment(NamedTuple):
+    uri: str
+    duration: float
+    title: Optional[str]
+    key: Optional[Key]
+    discontinuity: bool
+    byterange: Optional[ByteRange]
+    date: Optional[datetime]
+    map: Optional[Map]
+    ad: bool
+    prefetch: bool
+
+
+# generic namedtuples are unsupported, so just subclass
+class TwitchSequence(NamedTuple):
+    num: int
+    segment: TwitchSegment
+
+
 class TwitchM3U8(M3U8):
+    segments: List[TwitchSegment]
+
     def __init__(self):
         super().__init__()
         self.dateranges_ads = []
 
 
 class TwitchM3U8Parser(M3U8Parser):
+    m3u8: TwitchM3U8
+
     def parse_tag_ext_x_twitch_prefetch(self, value):
         segments = self.m3u8.segments
-        if segments:
-            segments.append(segments[-1]._replace(uri=self.uri(value), prefetch=True))
+        if not segments:  # pragma: no cover
+            return
+        last = segments[-1]
+        # Use the average duration of all regular segments for the duration of prefetch segments.
+        # This is better than using the duration of the last segment when regular segment durations vary a lot.
+        # In low latency mode, the playlist reload time is the duration of the last segment.
+        duration = last.duration if last.prefetch else sum(segment.duration for segment in segments) / float(len(segments))
+        segments.append(last._replace(
+            uri=self.uri(value),
+            duration=duration,
+            prefetch=True
+        ))
 
     def parse_tag_ext_x_daterange(self, value):
         super().parse_tag_ext_x_daterange(value)
@@ -48,25 +80,21 @@ class TwitchM3U8Parser(M3U8Parser):
         if is_ad:
             self.m3u8.dateranges_ads.append(daterange)
 
-    def get_segment(self, uri):
-        byterange = self.state.pop("byterange", None)
-        extinf = self.state.pop("extinf", (0, None))
+    def get_segment(self, uri: str) -> TwitchSegment:
+        extinf: ExtInf = self.state.pop("extinf", None) or ExtInf(0, None)
         date = self.state.pop("date", None)
-        map_ = self.state.get("map")
-        key = self.state.get("key")
-        discontinuity = self.state.pop("discontinuity", False)
         ad = any(self.m3u8.is_date_in_daterange(date, daterange) for daterange in self.m3u8.dateranges_ads)
 
-        return Segment(
-            uri,
-            extinf[0],
-            extinf[1],
-            key,
-            discontinuity,
-            ad,
-            byterange,
-            date,
-            map_,
+        return TwitchSegment(
+            uri=uri,
+            duration=extinf.duration,
+            title=extinf.title,
+            key=self.state.get("key"),
+            discontinuity=self.state.pop("discontinuity", False),
+            byterange=self.state.pop("byterange", None),
+            date=date,
+            map=self.state.get("map"),
+            ad=ad,
             prefetch=False
         )
 
@@ -79,13 +107,13 @@ class TwitchHLSStreamWorker(HLSStreamWorker):
     def _reload_playlist(self, *args):
         return load_hls_playlist(*args, parser=TwitchM3U8Parser, m3u8=TwitchM3U8)
 
-    def _playlist_reload_time(self, playlist, sequences):
+    def _playlist_reload_time(self, playlist: TwitchM3U8, sequences: List[TwitchSequence]):
         if self.stream.low_latency and sequences:
             return sequences[-1].segment.duration
 
         return super()._playlist_reload_time(playlist, sequences)
 
-    def process_sequences(self, playlist, sequences):
+    def process_sequences(self, playlist: TwitchM3U8, sequences: List[TwitchSequence]):
         # ignore prefetch segments if not LL streaming
         if not self.stream.low_latency:
             sequences = [seq for seq in sequences if not seq.segment.prefetch]
@@ -111,7 +139,7 @@ class TwitchHLSStreamWorker(HLSStreamWorker):
 
 
 class TwitchHLSStreamWriter(HLSStreamWriter):
-    def should_filter_sequence(self, sequence):
+    def should_filter_sequence(self, sequence: TwitchSequence):
         return self.stream.disable_ads and sequence.segment.ad
 
 
@@ -298,7 +326,7 @@ class TwitchAPI:
             login=channel_or_vod if is_live else "",
             isVod=not is_live,
             vodID=channel_or_vod if not is_live else "",
-            playerType="site"
+            playerType="embed"
         )
         subschema = validate.any(None, validate.all(
             {
@@ -551,18 +579,18 @@ class Twitch(Plugin):
             except PluginError:
                 return False
 
-            log.info("{0} is hosting {1}".format(self.channel, login))
+            log.info(f"{self.channel} is hosting {login}")
             if disabled:
                 log.info("hosting was disabled by command line option")
                 return True
 
             if login in hosted_chain:
                 loop = " -> ".join(hosted_chain + [login])
-                log.error("A loop of hosted channels has been detected, cannot find a playable stream. ({0})".format(loop))
+                log.error(f"A loop of hosted channels has been detected, cannot find a playable stream. ({loop})")
                 return True
 
             hosted_chain.append(login)
-            log.info("switching to {0}".format(login))
+            log.info(f"switching to {login}")
             self.channel = login
             self.author = display_name
 
@@ -588,6 +616,10 @@ class Twitch(Plugin):
 
         # only get the token once the channel has been resolved
         log.debug(f"Getting live HLS streams for {self.channel}")
+        self.session.http.headers.update({
+            "referer": "https://player.twitch.tv",
+            "origin": "https://player.twitch.tv",
+        })
         sig, token, restricted_bitrates = self._access_token(True, self.channel)
         url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
 
@@ -620,7 +652,7 @@ class Twitch(Plugin):
 
         for name in restricted_bitrates:
             if name not in streams:
-                log.warning("The quality '{0}' is not available since it requires a subscription.".format(name))
+                log.warning(f"The quality '{name}' is not available since it requires a subscription.")
 
         return streams
 
