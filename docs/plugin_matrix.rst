@@ -98,7 +98,6 @@ idf1                    idf1.fr              Yes   Yes
 invintus                player.invintus.com  Yes   Yes
 kanalukraina            kanalukraina.tv      Yes   Yes
 kugou                   fanxing.kugou.com    Yes   --
-latina                  latina.pe            Yes   No    Streams may be geo-restricted to Peru.
 linelive                live.line.me         Yes   Yes
 livestream              livestream.com       Yes   --
 lrt                     lrt.lt               Yes   No
