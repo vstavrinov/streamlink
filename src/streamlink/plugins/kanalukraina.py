@@ -19,7 +19,7 @@ class HTML_Parser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == 'script':
             attrs = dict(attrs)
-            if 'type' in attrs and attrs['type'] == 'text/javascript':
+            if 'type' in attrs and attrs['type'][25:] == 'text/javascript':
                 self.js = True
 
     def handle_data(self, data):
