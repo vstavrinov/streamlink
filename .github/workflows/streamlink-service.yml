@@ -20,6 +20,6 @@ jobs:
               -H "Authorization: token $STREAMLINK_SERVICE_TOKEN" \
               -d '{"ref": "master",
                    "inputs":
-                       {"streamlink": "$COMMIT"}
+                       {"streamlink": "'$COMMIT'"}
                   }'                                              \
           https://api.github.com/repos/$ENDPOINT/dispatches
