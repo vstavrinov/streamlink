@@ -80,7 +80,7 @@ egame                   egame.qq.com         Yes   No
 eltrecetv               eltrecetv.com.ar     Yes   Yes   Streams may be geo-restricted to Argentina.
 euronews                euronews.com         Yes   No
 facebook                facebook.com         Yes   Yes
-filmon                  filmon.com           Yes   Yes   Only SD quality streams.
+filmon                  filmon.com           Yes   Yes   Some VODs are mp4 which may not stream, use -o to download
 foxtr                   fox.com.tr           Yes   No
 funimationnow           - funimation.com     --    Yes   :ref:`Requires session cookies <cli:Authenticating with FunimationNow>`
                         - funimationnow.uk
@@ -152,6 +152,7 @@ reuters                 - reuters.com        Yes   Yes
 rotana                  rotana.net           Yes   --    Streams are geo-restricted to Saudi Arabia.
 rtbf                    - rtbf.be/auvio      Yes   Yes   Streams may be geo-restricted to Belgium or Europe.
                         - rtbfradioplayer.be
+rtpa                    rtpa.es              Yes   Yes
 rtpplay                 rtp.pt/play          Yes   Yes   Streams may be geo-restricted to Portugal.
 rtve                    rtve.es              Yes   Yes   Streams may be geo-restricted to Spain.
 rtvs                    rtvs.sk              Yes   No    Streams may be geo-restricted to Slovakia.
