@@ -1,3 +1,8 @@
+"""
+$url kanalukraina.tv
+$type live
+"""
+
 import logging
 import re
 from html.parser import HTMLParser

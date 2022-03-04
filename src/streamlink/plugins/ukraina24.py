@@ -1,3 +1,8 @@
+"""
+$url ukraina24.segodnya.ua
+$type live
+"""
+
 import logging
 import re
 from html.parser import HTMLParser
