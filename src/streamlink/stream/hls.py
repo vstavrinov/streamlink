@@ -519,7 +519,7 @@ class HLSStream(HTTPStream):
         :param force_restart: Start from the beginning after reaching the playlist's end
         :param start_offset: Number of seconds to be skipped from the beginning
         :param duration: Number of seconds until ending the stream
-        :param args: Additional keyword arguments passed to :meth:`requests.request`
+        :param args: Additional keyword arguments passed to :meth:`requests.Session.request`
         """
 
         super().__init__(session_, url, **args)
@@ -582,7 +582,8 @@ class HLSStream(HTTPStream):
         :param name_fmt: A format string for the name, allowed format keys are: name, pixels, bitrate
         :param start_offset: Number of seconds to be skipped from the beginning
         :param duration: Number of second until ending the stream
-        :param request_params: Additional keyword arguments passed to :class:`HLSStream` or :py:meth:`requests.request`
+        :param request_params: Additional keyword arguments passed to :class:`HLSStream`, :class:`MuxedHLSStream`,
+                               or :py:meth:`requests.Session.request`
         """
 
         locale = session_.localization
