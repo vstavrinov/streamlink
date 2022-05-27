@@ -7,7 +7,7 @@ import logging
 import re
 from html.parser import HTMLParser
 
-import esprima
+import esprima # type: ignore
 
 from streamlink.plugin import Plugin, pluginmatcher
 from streamlink.stream import HLSStream
