@@ -8,7 +8,7 @@ import re
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
-import esprima # type: ignore
+import esprima  # type: ignore
 
 from streamlink.plugin import Plugin, pluginmatcher
 from streamlink.plugin.api import useragents
