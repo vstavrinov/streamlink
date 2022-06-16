@@ -27,6 +27,13 @@ Python pip                           See the `PyPI package and source code`_ sec
 
                                      `Installing Chocolatey packages`_
 
+`Scoop`_                             .. code-block::
+
+                                        scoop bucket add extras
+                                        scoop install streamlink
+
+                                     `Installing Scoop packages`_
+
 `Windows Package Manager`_           .. code-block:: bat
 
                                         winget install streamlink
@@ -35,8 +42,10 @@ Python pip                           See the `PyPI package and source code`_ sec
 ==================================== ===========================================
 
 .. _Chocolatey: https://chocolatey.org/packages/streamlink
+.. _Scoop: https://scoop.sh/#/apps?q=streamlink&s=0&d=1&o=true
 .. _Windows Package Manager: https://github.com/microsoft/winget-pkgs/tree/master/manifests/s/Streamlink/Streamlink
 .. _Installing Chocolatey packages: https://chocolatey.org
+.. _Installing Scoop packages: https://scoop.sh
 .. _Installing Winget packages: https://docs.microsoft.com/en-us/windows/package-manager/
 
 macOS
@@ -122,6 +131,10 @@ Python pip                           See the `PyPI package and source code`_ sec
 
                                         doas pkg_add streamlink
 
+`openSUSE`_                          .. code-block:: bash
+
+                                        sudo zypper install streamlink
+
 `Solus`_                             .. code-block:: bash
 
                                         sudo eopkg install streamlink
@@ -149,6 +162,7 @@ if a package is not available for your distro or platform, or if it's out of dat
 .. _NetBSD (pkgsrc): https://pkgsrc.se/multimedia/streamlink
 .. _NixOS: https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/video/streamlink
 .. _OpenBSD: https://openports.se/multimedia/streamlink
+.. _openSUSE: https://build.opensuse.org/package/show/multimedia:apps/streamlink
 .. _Solus: https://dev.getsol.us/source/streamlink/
 .. _Ubuntu: https://launchpad.net/~nilarimogard/+archive/ubuntu/webupd8/+packages?field.name_filter=streamlink&field.status_filter=published&field.series_filter=
 .. _Void: https://github.com/void-linux/void-packages/tree/master/srcpkgs/streamlink
@@ -175,11 +189,11 @@ Gentoo                               soredake <fdsfgs at krutt.org>
 NetBSD                               Maya Rashish <maya at netbsd.org>
 NixOS                                Tuomas Tynkkynen <tuomas.tynkkynen at iki.fi>
 OpenBSD                              Brian Callahan <bcallah at openbsd.org>
+openSUSE                             Simon Puchert <simonpuchert at alice.de>
 Solus                                Joey Riches <josephriches at gmail.com>
 Ubuntu                               Alin Andrei <andrew at webupd8.org>
 Void                                 Michal Vasilek <michal at vasilek.cz>
 Windows binaries                     Sebastian Meyer <mail at bastimeyer.de>
-Windows port. version                beardypig <beardypig at protonmail.com>
 ==================================== ===========================================
 
 
@@ -285,7 +299,7 @@ python    `Python`_                 At least version **3.7**.
 
 build     `setuptools`_             At least version **45.0.0**. |br| Used as build backend.
 build     `wheel`_                  Used by the build frontend for creating Python wheels.
-build     `versioningit`_           At least version **1.1.1**. |br| Used for generating the version string from git
+build     `versioningit`_           At least version **2.0.0**. |br| Used for generating the version string from git
                                     when building, or when running in an editable install.
 
 runtime   `isodate`_                Used for parsing ISO8601 strings
