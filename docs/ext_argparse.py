@@ -21,11 +21,13 @@ from sphinx.util.nodes import nested_parse_with_titles
 _block_re = re.compile(r":\n{2}\s{2}")
 _default_re = re.compile(r"Default is (.+)\.\n")
 _note_re = re.compile(r"Note: (.*)(?:\n\n|\n*$)", re.DOTALL)
-_option_line_re = re.compile(r"^(?!\s{2}|Example: )(.+)$", re.MULTILINE)
+_option_line_re = re.compile(r"^(?!\s{2,}%\(prog\)s|\s{2,}--\w[\w-]*\w\b|Example: )(.+)$", re.MULTILINE)
 _option_re = re.compile(r"(?:^|(?<=\s))(--\w[\w-]*\w)\b")
 _prog_re = re.compile(r"%\(prog\)s")
 _percent_re = re.compile(r"%%")
 _cli_metadata_variables_section_cross_link_re = re.compile(r"the \"Metadata variables\" section")
+_inline_code_block_re = re.compile(r"(?<!`)`([^`]+?)`")
+_example_inline_code_block_re = re.compile(r"(?<=^Example: )(.+)$", re.MULTILINE)
 
 
 def get_parser(module_name, attr):
@@ -52,6 +54,15 @@ class ArgparseDirective(Directive):
         # Dedent the help to make sure we are always dealing with
         # non-indented text.
         help = dedent(help)
+
+        help = _inline_code_block_re.sub(
+            lambda m: (
+                ":code:`{0}`".format(m.group(1).replace('\\', '\\\\'))
+            ),
+            help
+        )
+
+        help = _example_inline_code_block_re.sub(r":code:`\1`", help)
 
         # Replace option references with links.
         # Do this before indenting blocks and notes.
