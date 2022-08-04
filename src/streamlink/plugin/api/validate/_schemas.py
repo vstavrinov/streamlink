@@ -10,22 +10,37 @@ class SchemaContainer:
         self.schema = schema
 
 
-class AllSchema(SchemaContainer):
+class _CollectionSchemaContainer(SchemaContainer):
+    def __init__(self, *schemas):
+        super().__init__(schemas)
+
+
+class AllSchema(_CollectionSchemaContainer):
     """
     Collection of schemas where every schema must be valid.
+    The last validation result gets returned.
     """
 
-    def __init__(self, *schemas):
-        super().__init__(schemas)
 
-
-class AnySchema(SchemaContainer):
+class AnySchema(_CollectionSchemaContainer):
     """
     Collection of schemas where at least one schema must be valid.
+    The first successful validation result gets returned.
     """
 
-    def __init__(self, *schemas):
-        super().__init__(schemas)
+
+class NoneOrAllSchema(_CollectionSchemaContainer):
+    """
+    Collection of schemas where every schema must be valid. If the initial input is None, all validations will be skipped.
+    The last validation result gets returned.
+    """
+
+
+class ListSchema(_CollectionSchemaContainer):
+    """
+    Collection of schemas where every indexed schema must be valid, as well as the input type and length.
+    A new list of the validated input gets returned.
+    """
 
 
 class GetItemSchema:
