@@ -278,6 +278,16 @@ class TestPattern:
         assert type(result) is re.Match
         assert result.groupdict() == expected
 
+    def test_stringsubclass(self):
+        assert validate.validate(
+            validate.all(
+                validate.xml_xpath_string(".//@bar"),
+                re.compile(r".+"),
+                validate.get(0),
+            ),
+            Element("foo", {"bar": "baz"}),
+        ) == "baz"
+
     def test_failure(self):
         assert validate.validate(re.compile(r"foo"), "bar") is None
 
@@ -459,6 +469,47 @@ class TestListSchema:
         assert_validationerror(cm.value, """
             ValidationError(ListSchema):
               Length of list (2) does not match expectation (3)
+        """)
+
+
+class TestRegexSchema:
+    @pytest.mark.parametrize("pattern,data,expected", [
+        (r"\s(?P<bar>\S+)\s", "foo bar baz", {"bar": "bar"}),
+        (rb"\s(?P<bar>\S+)\s", b"foo bar baz", {"bar": b"bar"}),
+    ])
+    def test_success(self, pattern, data, expected):
+        result = validate.validate(validate.regex(re.compile(pattern)), data)
+        assert type(result) is re.Match
+        assert result.groupdict() == expected
+
+    def test_findall(self):
+        assert validate.validate(validate.regex(re.compile(r"\w+"), "findall"), "foo bar baz") == ["foo", "bar", "baz"]
+
+    def test_split(self):
+        assert validate.validate(validate.regex(re.compile(r"\s+"), "split"), "foo bar baz") == ["foo", "bar", "baz"]
+
+    def test_failure(self):
+        with pytest.raises(validate.ValidationError) as cm:
+            validate.validate(validate.regex(re.compile(r"foo")), "bar")
+        assert_validationerror(cm.value, """
+            ValidationError(RegexSchema):
+              Pattern 'foo' did not match 'bar'
+        """)
+
+    def test_failure_type(self):
+        with pytest.raises(validate.ValidationError) as cm:
+            validate.validate(validate.regex(re.compile(r"foo")), b"foo")
+        assert_validationerror(cm.value, """
+            ValidationError(RegexSchema):
+              cannot use a string pattern on a bytes-like object
+        """)
+
+    def test_failure_schema(self):
+        with pytest.raises(validate.ValidationError) as cm:
+            validate.validate(validate.regex(re.compile(r"foo")), 123)
+        assert_validationerror(cm.value, """
+            ValidationError(RegexSchema):
+              Type of 123 should be str or bytes, but is int
         """)
 
 
