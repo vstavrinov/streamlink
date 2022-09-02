@@ -84,8 +84,8 @@ class BBCiPlayer(Plugin):
         validate.filter(lambda x: x["kind"] == "video")
     )
 
-    def __init__(self, url):
-        super().__init__(url)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.url = urlunparse(urlparse(self.url)._replace(scheme="https"))
 
     @classmethod
@@ -208,7 +208,7 @@ class BBCiPlayer(Plugin):
         elif channel_name:
             log.debug(f"Loading stream for live channel: {channel_name}")
             if self.get_option("hd"):
-                tvip = self.find_tvip(self.url, master=True) + "_hd"
+                tvip = f"{self.find_tvip(self.url, master=True)}_hd"
                 if tvip:
                     log.debug(f"Trying HD stream {tvip}...")
                     try:
