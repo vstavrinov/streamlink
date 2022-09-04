@@ -72,17 +72,18 @@ class SBScokr(Plugin):
         res = self.session.http.get(self.api_channels)
         res = self.session.http.json(res, schema=self._channels_schema)
 
-        channels = {}
-        for channel in sorted(res, key=lambda x: x['channelid']):
-            if channel.get('type') in ('TV', 'Radio'):
-                channels[channel['channelid']] = channel['channelname']
+        channels = {
+            channel["channelid"]: channel["channelname"]
+            for channel in sorted(res, key=lambda x: x["channelid"])
+            if channel.get("type") in ("TV", "Radio")
+        }
 
         log.info('Available IDs: {0}'.format(', '.join(
             '{0} ({1})'.format(key, value) for key, value in channels.items())))
         if not user_channel_id:
             log.error('No channel selected, use --sbscokr-id CHANNELID')
             return
-        elif user_channel_id and user_channel_id not in channels.keys():
+        elif user_channel_id not in channels.keys():
             log.error('Channel ID "{0}" is not available.'.format(user_channel_id))
             return
 
@@ -98,14 +99,17 @@ class SBScokr(Plugin):
                                     params=params)
         res = self.session.http.json(res, schema=self._channel_schema)
 
+        streams = []
         for media in res['source']['mediasourcelist']:
             if media['mediaurl']:
-                yield from HLSStream.parse_variant_playlist(self.session, media['mediaurl']).items()
-        else:
-            if res['info']['onair_yn'] != 'Y':
-                log.error('This channel is currently unavailable')
-            elif res['info']['overseas_yn'] != 'Y':
-                log.error(res['info']['overseas_text'])
+                streams.extend(HLSStream.parse_variant_playlist(self.session, media["mediaurl"]).items())
+        if streams:
+            return streams
+
+        if res["info"]["onair_yn"] != "Y":
+            log.error("This channel is currently unavailable")
+        elif res["info"]["overseas_yn"] != "Y":
+            log.error(res["info"]["overseas_text"])
 
 
 __plugin__ = SBScokr

@@ -75,11 +75,11 @@ class MPDParsers:
 
     @staticmethod
     def frame_rate(frame_rate):
-        if "/" in frame_rate:
-            a, b = frame_rate.split("/")
-            return float(a) / float(b)
-        else:
+        if "/" not in frame_rate:
             return float(frame_rate)
+
+        a, b = frame_rate.split("/")
+        return float(a) / float(b)
 
     @staticmethod
     def timedelta(timescale=1):
@@ -583,8 +583,7 @@ class Representation(MPDNode):
                     yield segment
         elif segmentLists:
             for segmentList in segmentLists:
-                for segment in segmentList.segments:
-                    yield segment
+                yield from segmentList.segments
         else:
             yield Segment(self.base_url, 0, True, True)
 

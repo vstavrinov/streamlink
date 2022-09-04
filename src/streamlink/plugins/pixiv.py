@@ -124,25 +124,20 @@ class Pixiv(Plugin):
 
         if self._authed:
             log.debug("Attempting to authenticate using cached cookies")
-        elif not self._authed and login_session_id and login_device_token:
+        elif login_session_id and login_device_token:
             self._login_using_session_id_and_device_token(login_session_id, login_device_token)
 
         streamer_data = self.get_streamer_data()
         performers = streamer_data.get("performers")
         log.trace("{0!r}".format(streamer_data))
         if performers:
-            co_hosts = []
-            # create a list of all available performers
-            for p in performers:
-                co_hosts += [(p["user"]["unique_name"], p["user"]["name"])]
-
+            co_hosts = [(p["user"]["unique_name"], p["user"]["name"]) for p in performers]
             log.info("Available hosts: {0}".format(", ".join(
                 ["{0} ({1})".format(k, v) for k, v in co_hosts])))
 
             # control if the host from --pixiv-performer is valid,
             # if not let the User select a different host
-            if (self.get_option("performer")
-                    and not self.get_option("performer") in [v[0] for v in co_hosts]):
+            if self.get_option("performer") and self.get_option("performer") not in [v[0] for v in co_hosts]:
 
                 # print the owner as 0
                 log.info("0 - {0} ({1})".format(

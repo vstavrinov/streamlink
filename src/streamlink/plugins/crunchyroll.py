@@ -33,7 +33,7 @@ def parse_timestamp(ts):
     return (
         datetime.datetime.strptime(ts[:-7], "%Y-%m-%dT%H:%M:%S")
         + datetime.timedelta(hours=int(ts[-5:-3]), minutes=int(ts[-2:]))
-        * int(ts[-6:-5] + "1")
+        * int(f"{ts[-6:-5]}1")
     )
 
 
@@ -338,7 +338,7 @@ class Crunchyroll(Plugin):
         info = info["stream_data"]
 
         # The adaptive quality stream sometimes a subset of all the other streams listed, ultra is no included
-        has_adaptive = any([s["quality"] == "adaptive" for s in info["streams"]])
+        has_adaptive = any(s["quality"] == "adaptive" for s in info["streams"])
         if has_adaptive:
             log.debug("Loading streams from adaptive playlist")
             for stream in filter(lambda x: x["quality"] == "adaptive", info["streams"]):

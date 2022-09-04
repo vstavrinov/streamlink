@@ -185,8 +185,7 @@ class FFMPEGMuxer(StreamIO):
         return self
 
     def read(self, size=-1):
-        data = self.process.stdout.read(size)
-        return data
+        return self.process.stdout.read(size)
 
     def close(self):
         if self.closed:
@@ -199,11 +198,12 @@ class FFMPEGMuxer(StreamIO):
             self.process.stdout.close()
 
             # close the streams
-            futures = []
             executor = concurrent.futures.ThreadPoolExecutor()
-            for stream in self.streams:
-                if hasattr(stream, "close") and callable(stream.close):
-                    futures.append(executor.submit(stream.close))
+            futures = [
+                executor.submit(stream.close)
+                for stream in self.streams
+                if hasattr(stream, "close") and callable(stream.close)
+            ]
 
             concurrent.futures.wait(futures, return_when=concurrent.futures.ALL_COMPLETED)
             log.debug("Closed all the substreams")

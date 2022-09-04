@@ -89,8 +89,8 @@ class AbemaTVLicenseAdapter(BaseAdapter):
         cid = jsonres['cid']
         k = jsonres['k']
 
-        res = sum([self.STRTABLE.find(k[i]) * (58 ** (len(k) - 1 - i))
-                  for i in range(len(k))])
+        res = sum(self.STRTABLE.find(k[i]) * (58 ** (len(k) - 1 - i)) for i in range(len(k)))
+
         encvideokey = struct.pack('>QQ', res >> 64, res & 0xffffffffffffffff)
 
         # HKEY:
@@ -105,9 +105,7 @@ class AbemaTVLicenseAdapter(BaseAdapter):
         enckey = h.digest()
 
         aes = AES.new(enckey, AES.MODE_ECB)
-        rawvideokey = aes.decrypt(encvideokey)
-
-        return rawvideokey
+        return aes.decrypt(encvideokey)
 
     def send(self, request, stream=False, timeout=None, verify=True, cert=None,
              proxies=None):
