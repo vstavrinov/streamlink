@@ -12,8 +12,18 @@ jobs:
       - name: streamlink-service deploy
         env:
           STREAMLINK_SERVICE_TOKEN: ${{ secrets.STREAMLINK_SERVICE_TOKEN }}
-          ENDPOINT: "vstavrinov/streamlink-service/actions/workflows/main.yml"
         run: |
+          VERSION=$(versioningit)
+          CONTENT=$(echo $VERSION | base64 -)
+          ENDPOINT=vstavrinov/streamlink-service/contents
+          curl -s -X POST                                         \
+              -H "Accept: application/vnd.github.v3+json"         \
+              -H "Authorization: token $STREAMLINK_SERVICE_TOKEN" \
+              -d '{"message": "Update streamlink to '$VERSION'",
+                   "content": "'$CONTENT'"
+                  }'                                              \
+          https://api.github.com/repos/$ENDPOINT/streamlink-version
+          ENDPOINT=vstavrinov/streamlink-service/actions/workflows/main.yml
           COMMIT=$(git rev-parse --short $GITHUB_SHA)
           curl -s -X POST                                         \
               -H "Accept: application/vnd.github.v3+json"         \
