@@ -8,12 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 100
+      - name: Fetch tags
+        run: git fetch --depth=100 origin +refs/tags/*:refs/tags/*
+      - name: Install versioningit
+        run: pip install versioningit
       - name: streamlink-service deploy
         env:
           STREAMLINK_SERVICE_TOKEN: ${{ secrets.STREAMLINK_SERVICE_TOKEN }}
         run: |
-          pip install versioningit
           VERSION=$(versioningit)
           CONTENT=$(echo $VERSION | base64 -)
           ENDPOINT=vstavrinov/streamlink-service/contents
