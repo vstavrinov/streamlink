@@ -10,6 +10,7 @@ SHA="$(curl                                             \
     https://api.github.com/repos/$ENDPOINT/streamlink-version |
     awk -F\" '/"sha":/ {print $4}')"
 
+echo SHA=$SHA
 curl -X POST                                            \
     -H "Accept: application/vnd.github.v3+json"         \
     -H "Authorization: token $STREAMLINK_SERVICE_TOKEN" \
