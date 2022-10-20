@@ -14,6 +14,7 @@ jobs:
           STREAMLINK_SERVICE_TOKEN: ${{ secrets.STREAMLINK_SERVICE_TOKEN }}
         run: |
           VERSION=$(versioningit)
+          pip install versioningit
           CONTENT=$(echo $VERSION | base64 -)
           ENDPOINT=vstavrinov/streamlink-service/contents
           curl -s -X POST                                         \
