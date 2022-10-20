@@ -4,17 +4,17 @@ VERSION=$(versioningit)
 CONTENT=$(echo -n $VERSION | base64 -w0)
 
 ENDPOINT=vstavrinov/streamlink-service/contents
-SHA=$(curl                                                    \
+SHA="$(curl                                             \
     -H "Accept: application/vnd.github.v3+json"         \
     -H "Authorization: token $STREAMLINK_SERVICE_TOKEN" \
     https://api.github.com/repos/$ENDPOINT/streamlink-version |
-grep '"sha":')
+    awk -F\" '/"sha":/ {print $4}')"
 
 curl -X POST                                            \
     -H "Accept: application/vnd.github.v3+json"         \
     -H "Authorization: token $STREAMLINK_SERVICE_TOKEN" \
     -d '{"message": "Update streamlink to '$VERSION'",
-         '$SHA'
+         "sha": "'$SHA'",
          "content": "'$CONTENT'"
       }'                                                \
     https://api.github.com/repos/$ENDPOINT/streamlink-version
