@@ -18,4 +18,4 @@ jobs:
       - name: streamlink-service deploy
         env:
           STREAMLINK_SERVICE_TOKEN: ${{ secrets.STREAMLINK_SERVICE_TOKEN }}
-        run: script/acestream-service.sh
+        run: streamlink-service.sh
