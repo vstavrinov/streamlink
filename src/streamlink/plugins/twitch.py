@@ -2,7 +2,9 @@
 $description Global live-streaming and video hosting social platform owned by Amazon.
 $url twitch.tv
 $type live, vod
-$notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` is supported
+$notes See the :ref:`Authentication <cli/plugins/twitch:Authentication>` docs on how to prevent ads.
+$notes Read more about :ref:`embedded ads <cli/plugins/twitch:Embedded ads>` here.
+$notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` is supported.
 """
 
 import argparse
@@ -234,6 +236,8 @@ class TwitchAPI:
             "Client-ID": "kimne78kx3ncx6brgo4mv6wki5h1ko",
         }
         self.headers.update(**dict(session.get_plugin_option("twitch", "api-header") or []))
+        self.access_token_params = dict(session.get_plugin_option("twitch", "access-token-param") or [])
+        self.access_token_params.setdefault("playerType", "embed")
 
     def call(self, data, schema=None):
         res = self.session.http.post(
@@ -386,7 +390,7 @@ class TwitchAPI:
             login=channel_or_vod if is_live else "",
             isVod=not is_live,
             vodID=channel_or_vod if not is_live else "",
-            playerType="embed"
+            **self.access_token_params,
         )
         subschema = validate.none_or_all(
             {
@@ -513,6 +517,19 @@ class TwitchAPI:
         A header to add to each Twitch API HTTP request.
 
         Can be repeated to add multiple headers.
+
+        Useful for adding authentication data that can prevent ads. See the plugin-specific documentation for more information.
+    """,
+)
+@pluginargument(
+    "access-token-param",
+    metavar="KEY=VALUE",
+    type=keyvalue,
+    action="append",
+    help="""
+        A parameter to add to the API request for acquiring the streaming access token.
+
+        Can be repeated to add multiple parameters.
     """,
 )
 class Twitch(Plugin):
