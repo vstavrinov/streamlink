@@ -1,9 +1,21 @@
 import unittest
 from datetime import datetime, timedelta
+from typing import Optional, Tuple, Union
 
+import pytest
 from isodate import tzinfo  # type: ignore[import]
 
-from streamlink.stream.hls_playlist import DateRange, M3U8Parser, Media, Resolution, Segment, StreamInfo, load
+from streamlink.stream.hls_playlist import (
+    ByteRange,
+    DateRange,
+    ExtInf,
+    M3U8Parser,
+    Media,
+    Resolution,
+    Segment,
+    StreamInfo,
+    load,
+)
 from tests.resources import text
 
 
@@ -26,6 +38,163 @@ def test_parse_tag_callback_cache():
 
     assert parent._TAGS is not childA._TAGS
     assert childA._TAGS is childB._TAGS
+
+
+@pytest.mark.parametrize("string,expected", [
+    ("", (None, None)),
+    ("invalid", (None, None)),
+    ("#TAG", ("TAG", "")),
+    ("#TAG:ATTRIBUTES", ("TAG", "ATTRIBUTES")),
+    ("#TAG:    ATTRIBUTES    ", ("TAG", "ATTRIBUTES")),
+])
+def test_split_tag(string: str, expected: Union[Tuple[str, str], Tuple[None, None]]):
+    assert M3U8Parser.split_tag(string) == expected
+
+
+@pytest.mark.parametrize("attributes,log,expected", [
+    pytest.param("", False, {}, id="empty attribute list"),
+    pytest.param("invalid", True, {}, id="invalid attribute list"),
+    pytest.param("key=VALUE", True, {}, id="lowercase attribute name"),
+    pytest.param("123=VALUE", True, {}, id="non-alpha attribute name"),
+    pytest.param("KEY = VALUE", True, {}, id="invalid attribute format"),
+    pytest.param("KEY=", True, {}, id="missing attribute value"),
+    pytest.param("KEY=\"", True, {}, id="invalid attribute value"),
+    pytest.param("KEY=123", False, {"KEY": "123"}, id="decimal integer"),
+    pytest.param("KEY=0xdeadbeef", False, {"KEY": "0xdeadbeef"}, id="hexadecimal sequence, lowercase"),
+    pytest.param("KEY=0XDEADBEEF", False, {"KEY": "0XDEADBEEF"}, id="hexadecimal sequence, uppercase"),
+    pytest.param("KEY=123.456", False, {"KEY": "123.456"}, id="decimal floating point number"),
+    pytest.param("KEY=-123.456", False, {"KEY": "-123.456"}, id="signed decimal floating point number"),
+    pytest.param("KEY=\"\"", False, {"KEY": ""}, id="empty quoted string"),
+    pytest.param("KEY=\"foobar\"", False, {"KEY": "foobar"}, id="quoted string"),
+    pytest.param("KEY=\"foo\"bar\"", True, {}, id="invalid quoted string (quote)"),
+    pytest.param("KEY=\"foo\rbar\"", True, {}, id="invalid quoted string (carriage return)"),
+    pytest.param("KEY=\"foo\nbar\"", True, {}, id="invalid quoted string (new line)"),
+    pytest.param("KEY=VALUE", False, {"KEY": "VALUE"}, id="enumerated string"),
+    pytest.param("KEY=<@_@>", False, {"KEY": "<@_@>"}, id="enumerated string with special characters"),
+    pytest.param("KEY=1920x1080", False, {"KEY": "1920x1080"}, id="decimal resolution"),
+    pytest.param(
+        "A=123,B=0xdeadbeef,C=123.456,D=-123.456,E=\"value, value, value\",F=VALUE,G=1920x1080",
+        False,
+        {
+            "A": "123",
+            "B": "0xdeadbeef",
+            "C": "123.456",
+            "D": "-123.456",
+            "E": "value, value, value",
+            "F": "VALUE",
+            "G": "1920x1080",
+        },
+        id="multiple attributes",
+    ),
+    pytest.param(
+        "A=\"foo\", B=123 , C=VALUE,D=456 ",
+        False,
+        {"A": "foo", "B": "123", "C": "VALUE", "D": "456"},
+        id="multiple attributes with surrounding spaces (off-spec)",
+    ),
+    pytest.param(
+        "A=\"foo\"B=123",
+        True,
+        {},
+        id="multiple attributes with invalid format (missing commas)",
+    ),
+    pytest.param(
+        "A=\"foo\",B = 123",
+        True,
+        {},
+        id="multiple attributes with invalid format (spaces)",
+    ),
+    pytest.param(
+        "A=\"foo\",B=",
+        True,
+        {},
+        id="multiple attributes with invalid format (missing value)",
+    ),
+])
+def test_parse_attributes(caplog: pytest.LogCaptureFixture, attributes: str, log: bool, expected: dict):
+    assert M3U8Parser.parse_attributes(attributes) == expected
+    assert not log or [(r.module, r.levelname, r.message) for r in caplog.records] == [
+        ("hls_playlist", "warning", "Discarded invalid attributes list"),
+    ]
+
+
+@pytest.mark.parametrize("string,expected", [
+    ("", False),
+    ("NO", False),
+    ("YES", True),
+])
+def test_parse_bool(string: str, expected: bool):
+    assert M3U8Parser.parse_bool(string) is expected
+
+
+@pytest.mark.parametrize("string,expected", [
+    ("", None),
+    ("invalid", None),
+    ("1234", ByteRange(1234, None)),
+    ("1234@5678", ByteRange(1234, 5678)),
+])
+def test_parse_byterange(string: str, expected: Optional[ByteRange]):
+    assert M3U8Parser.parse_byterange(string) == expected
+
+
+@pytest.mark.parametrize("string,expected", [
+    ("", ExtInf(0, None)),
+    ("invalid", ExtInf(0, None)),
+    ("123", ExtInf(123.0, None)),
+    ("123.456", ExtInf(123.456, None)),
+    ("123.456,foo", ExtInf(123.456, "foo")),
+])
+def test_parse_extinf(string: str, expected: ExtInf):
+    assert M3U8Parser.parse_extinf(string) == expected
+
+
+@pytest.mark.parametrize("string,log,expected", [
+    (None, False, None),
+    ("", True, None),
+    ("deadbeef", True, None),
+    ("0xnothex", True, None),
+    ("0xdeadbeef", False, b"\xde\xad\xbe\xef"),
+    ("0XDEADBEEF", False, b"\xde\xad\xbe\xef"),
+    ("0xdeadbee", False, b"\x0d\xea\xdb\xee"),
+])
+def test_parse_hex(caplog: pytest.LogCaptureFixture, string: Optional[str], log: bool, expected: Optional[bytes]):
+    assert M3U8Parser.parse_hex(string) == expected
+    assert not log or [(r.module, r.levelname, r.message) for r in caplog.records] == [
+        ("hls_playlist", "warning", "Discarded invalid hexadecimal-sequence attribute value"),
+    ]
+
+
+@pytest.mark.parametrize("string,log,expected", [
+    (None, False, None),
+    ("not an ISO8601 string", True, None),
+    ("2000-01-01", True, None),
+    ("2000-99-99T99:99:99.999Z", True, None),
+    ("2000-01-01T00:00:00.000Z", False, datetime(2000, 1, 1, 0, 0, 0, 0, tzinfo.UTC)),
+])
+def test_parse_iso8601(caplog: pytest.LogCaptureFixture, string: Optional[str], log: bool, expected: Optional[datetime]):
+    assert M3U8Parser.parse_iso8601(string) == expected
+    assert not log or [(r.module, r.levelname, r.message) for r in caplog.records] == [
+        ("hls_playlist", "warning", "Discarded invalid ISO8601 attribute value"),
+    ]
+
+
+@pytest.mark.parametrize("string,expected", [
+    (None, None),
+    ("123", timedelta(seconds=123.0)),
+    ("123.456", timedelta(seconds=123.456)),
+    ("-123.456", timedelta(seconds=-123.456)),
+])
+def test_parse_timedelta(string: Optional[str], expected: Optional[timedelta]):
+    assert M3U8Parser.parse_timedelta(string) == expected
+
+
+@pytest.mark.parametrize("string,expected", [
+    ("", Resolution(0, 0)),
+    ("invalid", Resolution(0, 0)),
+    ("1920x1080", Resolution(1920, 1080)),
+])
+def test_parse_resolution(string: str, expected: Resolution):
+    assert M3U8Parser.parse_resolution(string) == expected
 
 
 class TestHLSPlaylist(unittest.TestCase):
