@@ -22,13 +22,13 @@ class HTML_Parser(HTMLParser):
     js = False
 
     def handle_starttag(self, tag, attrs):
-        if tag == 'script':
+        if tag == "script":
             attrs = dict(attrs)
-            if 'type' in attrs and attrs['type'][25:] == 'text/javascript':
+            if "type" in attrs and attrs["type"][25:] == "text/javascript":
                 self.js = True
 
     def handle_data(self, data):
-        if self.js and data.find('PLAYER_SETTINGS') > 0:
+        if self.js and data.find("PLAYER_SETTINGS") > 0:
             self.data = data
 
 
@@ -38,21 +38,21 @@ def get_js(html):
     try:
         js = parser.data
     except Exception as exception:
-        log.error('Exception {0}: {1}\n'.format(type(exception).__name__, exception))
+        log.error("Exception {0}: {1}\n".format(type(exception).__name__, exception))
         return False
     parsed = esprima.parseScript(js, {"tolerant": True})
     return parsed.body
 
 
 @pluginmatcher(re.compile(
-    r'https?://kanalukraina.tv/online'
+    r"https?://kanalukraina.tv/online",
 ))
 class KanalUkraina(Plugin):
 
     def _get_streams(self):
         self.session.http.headers = {
             "Referer": self.url,
-            "User-Agent": useragents.FIREFOX
+            "User-Agent": useragents.FIREFOX,
         }
         html = self.session.http.get(self.url).text
         if html:
@@ -70,7 +70,7 @@ class KanalUkraina(Plugin):
                                                 for kind in item.properties:
                                                     if kind.key:
                                                         if kind.key.name:
-                                                            if kind.key.name == 'url':
+                                                            if kind.key.name == "url":
                                                                 if urlsplit(kind.value.value).netloc:
                                                                     stream_url = kind.value.value
                                                                 else:

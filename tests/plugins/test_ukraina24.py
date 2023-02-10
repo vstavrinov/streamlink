@@ -7,9 +7,9 @@ class TestPluginUkraina24(unittest.TestCase):
     __plugin__ = Ukraina24
 
     should_match = [
-        'https://ukraina24.segodnya.ua/online'
+        "https://ukraina24.segodnya.ua/online",
     ]
 
     should_not_match = [
-        'https://ukraina24.segodnya.ua'
+        "https://ukraina24.segodnya.ua",
     ]
