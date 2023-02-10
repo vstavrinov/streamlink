@@ -205,57 +205,57 @@ class TestHLSPlaylist(unittest.TestCase):
         self.assertEqual(
             playlist.media,
             [
-                Media(uri='http://test.se/audio/stereo/en/128kbit.m3u8', type='AUDIO', group_id='stereo',
-                      language='en', name='English', default=True, autoselect=True, forced=False,
+                Media(uri="http://test.se/audio/stereo/en/128kbit.m3u8", type="AUDIO", group_id="stereo",
+                      language="en", name="English", default=True, autoselect=True, forced=False,
                       characteristics=None),
-                Media(uri='http://test.se/audio/stereo/none/128kbit.m3u8', type='AUDIO', group_id='stereo',
-                      language='dubbing', name='Dubbing', default=False, autoselect=True, forced=False,
+                Media(uri="http://test.se/audio/stereo/none/128kbit.m3u8", type="AUDIO", group_id="stereo",
+                      language="dubbing", name="Dubbing", default=False, autoselect=True, forced=False,
                       characteristics=None),
-                Media(uri='http://test.se/audio/surround/en/320kbit.m3u8', type='AUDIO', group_id='surround',
-                      language='en', name='English', default=True, autoselect=True, forced=False,
+                Media(uri="http://test.se/audio/surround/en/320kbit.m3u8", type="AUDIO", group_id="surround",
+                      language="en", name="English", default=True, autoselect=True, forced=False,
                       characteristics=None),
-                Media(uri='http://test.se/audio/stereo/none/128kbit.m3u8', type='AUDIO', group_id='surround',
-                      language='dubbing', name='Dubbing', default=False, autoselect=True, forced=False,
+                Media(uri="http://test.se/audio/stereo/none/128kbit.m3u8", type="AUDIO", group_id="surround",
+                      language="dubbing", name="Dubbing", default=False, autoselect=True, forced=False,
                       characteristics=None),
-                Media(uri='http://test.se/subtitles_de.m3u8', type='SUBTITLES', group_id='subs', language='de',
-                      name='Deutsch', default=False, autoselect=True, forced=False, characteristics=None),
-                Media(uri='http://test.se/subtitles_en.m3u8', type='SUBTITLES', group_id='subs', language='en',
-                      name='English', default=True, autoselect=True, forced=False, characteristics=None),
-                Media(uri='http://test.se/subtitles_es.m3u8', type='SUBTITLES', group_id='subs', language='es',
-                      name='Espanol', default=False, autoselect=True, forced=False, characteristics=None),
-                Media(uri='http://test.se/subtitles_fr.m3u8', type='SUBTITLES', group_id='subs', language='fr',
-                      name='Français', default=False, autoselect=True, forced=False, characteristics=None)
-            ]
+                Media(uri="http://test.se/subtitles_de.m3u8", type="SUBTITLES", group_id="subs", language="de",
+                      name="Deutsch", default=False, autoselect=True, forced=False, characteristics=None),
+                Media(uri="http://test.se/subtitles_en.m3u8", type="SUBTITLES", group_id="subs", language="en",
+                      name="English", default=True, autoselect=True, forced=False, characteristics=None),
+                Media(uri="http://test.se/subtitles_es.m3u8", type="SUBTITLES", group_id="subs", language="es",
+                      name="Espanol", default=False, autoselect=True, forced=False, characteristics=None),
+                Media(uri="http://test.se/subtitles_fr.m3u8", type="SUBTITLES", group_id="subs", language="fr",
+                      name="Français", default=False, autoselect=True, forced=False, characteristics=None),
+            ],
         )
 
         self.assertEqual(
             [p.stream_info for p in playlist.playlists],
             [
-                StreamInfo(bandwidth=260000, program_id='1', codecs=['avc1.4d400d', 'mp4a.40.2'],
-                           resolution=Resolution(width=422, height=180), audio='stereo', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=520000, program_id='1', codecs=['avc1.4d4015', 'mp4a.40.2'],
-                           resolution=Resolution(width=638, height=272), audio='stereo', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=830000, program_id='1', codecs=['avc1.4d4015', 'mp4a.40.2'],
-                           resolution=Resolution(width=638, height=272), audio='stereo', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=1100000, program_id='1', codecs=['avc1.4d401f', 'mp4a.40.2'],
-                           resolution=Resolution(width=958, height=408), audio='surround', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=1600000, program_id='1', codecs=['avc1.4d401f', 'mp4a.40.2'],
-                           resolution=Resolution(width=1277, height=554), audio='surround', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=4100000, program_id='1', codecs=['avc1.4d4028', 'mp4a.40.2'],
-                           resolution=Resolution(width=1921, height=818), audio='surround', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=6200000, program_id='1', codecs=['avc1.4d4028', 'mp4a.40.2'],
-                           resolution=Resolution(width=1921, height=818), audio='surround', video=None,
-                           subtitles='subs'),
-                StreamInfo(bandwidth=10000000, program_id='1', codecs=['avc1.4d4033', 'mp4a.40.2'],
-                           resolution=Resolution(width=4096, height=1744), audio='surround', video=None,
-                           subtitles='subs')
-            ]
+                StreamInfo(bandwidth=260000, program_id="1", codecs=["avc1.4d400d", "mp4a.40.2"],
+                           resolution=Resolution(width=422, height=180), audio="stereo", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=520000, program_id="1", codecs=["avc1.4d4015", "mp4a.40.2"],
+                           resolution=Resolution(width=638, height=272), audio="stereo", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=830000, program_id="1", codecs=["avc1.4d4015", "mp4a.40.2"],
+                           resolution=Resolution(width=638, height=272), audio="stereo", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=1100000, program_id="1", codecs=["avc1.4d401f", "mp4a.40.2"],
+                           resolution=Resolution(width=958, height=408), audio="surround", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=1600000, program_id="1", codecs=["avc1.4d401f", "mp4a.40.2"],
+                           resolution=Resolution(width=1277, height=554), audio="surround", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=4100000, program_id="1", codecs=["avc1.4d4028", "mp4a.40.2"],
+                           resolution=Resolution(width=1921, height=818), audio="surround", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=6200000, program_id="1", codecs=["avc1.4d4028", "mp4a.40.2"],
+                           resolution=Resolution(width=1921, height=818), audio="surround", video=None,
+                           subtitles="subs"),
+                StreamInfo(bandwidth=10000000, program_id="1", codecs=["avc1.4d4033", "mp4a.40.2"],
+                           resolution=Resolution(width=4096, height=1744), audio="surround", video=None,
+                           subtitles="subs"),
+            ],
         )
 
     def test_parse_date(self):
@@ -302,8 +302,8 @@ class TestHLSPlaylist(unittest.TestCase):
                           classname=None, planned_duration=None, end_on_next=False, x={}),
                 DateRange(x={"X-CUSTOM": "value"},
                           id=None, start_date=None, end_date=None, duration=None,
-                          classname=None, planned_duration=None, end_on_next=False)
-            ]
+                          classname=None, planned_duration=None, end_on_next=False),
+            ],
         )
         self.assertEqual(
             list(playlist.segments),
@@ -315,23 +315,23 @@ class TestHLSPlaylist(unittest.TestCase):
                 Segment(uri="http://test.se/segment30.5-60.ts", duration=29.5, title="live", date=start_date + delta_30,
                         key=None, discontinuity=False, byterange=None, map=None),
                 Segment(uri="http://test.se/segment60-.ts", duration=60.0, title="live", date=start_date + delta_60,
-                        key=None, discontinuity=False, byterange=None, map=None)
-            ]
+                        key=None, discontinuity=False, byterange=None, map=None),
+            ],
         )
 
         self.assertEqual(
             [playlist.is_date_in_daterange(playlist.segments[0].date, daterange) for daterange in playlist.dateranges],
-            [None, True, True, True, True, True, True, True, True, None]
+            [None, True, True, True, True, True, True, True, True, None],
         )
         self.assertEqual(
             [playlist.is_date_in_daterange(playlist.segments[1].date, daterange) for daterange in playlist.dateranges],
-            [None, True, True, True, True, False, True, True, True, None]
+            [None, True, True, True, True, False, True, True, True, None],
         )
         self.assertEqual(
             [playlist.is_date_in_daterange(playlist.segments[2].date, daterange) for daterange in playlist.dateranges],
-            [None, True, True, True, False, False, False, True, True, None]
+            [None, True, True, True, False, False, False, True, True, None],
         )
         self.assertEqual(
             [playlist.is_date_in_daterange(playlist.segments[3].date, daterange) for daterange in playlist.dateranges],
-            [None, True, True, True, False, False, False, False, False, None]
+            [None, True, True, True, False, False, False, False, False, None],
         )

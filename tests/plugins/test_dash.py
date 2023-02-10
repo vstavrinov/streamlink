@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from streamlink.plugin.plugin import BIT_RATE_WEIGHT_RATIO, LOW_PRIORITY, NORMAL_PRIORITY, NO_PRIORITY
+from streamlink.plugin.plugin import BIT_RATE_WEIGHT_RATIO, LOW_PRIORITY, NO_PRIORITY, NORMAL_PRIORITY
 from streamlink.plugins.dash import MPEGDASH
 from tests.plugins import PluginCanHandleUrl
 
@@ -49,8 +49,8 @@ def test_get_streams(parse_manifest, url, expected):
 
 class TestPluginMPEGDASH(unittest.TestCase):
     def test_stream_weight(self):
-        self.assertAlmostEqual(MPEGDASH.stream_weight("720p"), (720, 'pixels'))
-        self.assertAlmostEqual(MPEGDASH.stream_weight("1080p"), (1080, 'pixels'))
-        self.assertAlmostEqual(MPEGDASH.stream_weight("720p+a128k"), (720 + 128, 'pixels'))
-        self.assertAlmostEqual(MPEGDASH.stream_weight("720p+a0k"), (720, 'pixels'))
-        self.assertAlmostEqual(MPEGDASH.stream_weight("a128k"), (128 / BIT_RATE_WEIGHT_RATIO, 'bitrate'))
+        self.assertAlmostEqual(MPEGDASH.stream_weight("720p"), (720, "pixels"))
+        self.assertAlmostEqual(MPEGDASH.stream_weight("1080p"), (1080, "pixels"))
+        self.assertAlmostEqual(MPEGDASH.stream_weight("720p+a128k"), (720 + 128, "pixels"))
+        self.assertAlmostEqual(MPEGDASH.stream_weight("720p+a0k"), (720, "pixels"))
+        self.assertAlmostEqual(MPEGDASH.stream_weight("a128k"), (128 / BIT_RATE_WEIGHT_RATIO, "bitrate"))

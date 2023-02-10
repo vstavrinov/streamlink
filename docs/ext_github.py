@@ -9,6 +9,7 @@ import re
 from docutils import nodes
 from docutils.transforms import Transform
 
+
 GITHUB_ISSUE_URL = "https://github.com/{0}/issues/{1}"
 GITHUB_USER_URL = "https://github.com/{1}"
 
@@ -45,7 +46,7 @@ class GithubReferences(Transform):
                 link = nodes.reference(
                     match.group(0),
                     match.group(0),
-                    refuri=ref
+                    refuri=ref,
                 )
                 new_nodes.append(link)
 

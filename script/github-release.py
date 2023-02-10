@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from os import getenv
 from pathlib import Path
 from pprint import pformat
-from typing import Any, IO, Literal, NewType, Optional
+from typing import IO, Any, Literal, NewType, Optional
 
 # noinspection PyPackageRequirements
 import jinja2
@@ -292,7 +292,7 @@ class GitHubAPI:
                 params={
                     "page": page,
                     "per_page": self.PER_PAGE,
-                }
+                },
             )
             if res.status_code != 200:
                 raise requests.HTTPError(f"Status code {res.status_code} for request {res.url}")
@@ -344,7 +344,7 @@ class GitHubAPI:
                 authors[email].commits += 1
 
         # sort by commits in descending order and by login name in ascending order
-        return sorted(
+        return sorted(  # noqa: C414
             sorted(
                 authors.values(),
                 key=lambda author: author.name,
@@ -415,7 +415,7 @@ class Release:
         self,
         api: GitHubAPI,
         no_contributors: bool = False,
-        no_shortlog: bool = False
+        no_shortlog: bool = False,
     ) -> str:
         template = self._read_template()
         jinjatemplate = jinja2.Template(template)
@@ -434,11 +434,11 @@ class Release:
 
             if not no_contributors:
                 context.update(
-                    contributors=api.get_contributors(start, prev_commit)
+                    contributors=api.get_contributors(start, prev_commit),
                 )
             if not no_shortlog:
                 context.update(
-                    gitshortlog=Git.shortlog(start, prev_commit)
+                    gitshortlog=Git.shortlog(start, prev_commit),
                 )
 
         return jinjatemplate.render(context)
@@ -480,7 +480,7 @@ if __name__ == "__main__":
     args = get_args()
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
-        format="[%(levelname)s] %(message)s"
+        format="[%(levelname)s] %(message)s",
     )
 
     try:
