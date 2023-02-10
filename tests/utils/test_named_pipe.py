@@ -5,8 +5,9 @@ from unittest.mock import Mock, call, patch
 from streamlink.utils.named_pipe import NamedPipe, NamedPipeBase, NamedPipePosix, NamedPipeWindows
 from tests import posix_only, windows_only
 
+
 try:
-    from ctypes import windll, create_string_buffer, c_ulong, byref  # type: ignore[attr-defined]
+    from ctypes import byref, c_ulong, create_string_buffer, windll  # type: ignore[attr-defined]
 except ImportError:
     pass
 
@@ -71,7 +72,7 @@ class TestNamedPipe(unittest.TestCase):
         NamedPipe()
         self.assertEqual(mock_log.info.mock_calls, [
             call("Creating pipe streamlinkpipe-12345-1-67890"),
-            call("Creating pipe streamlinkpipe-12345-2-67890")
+            call("Creating pipe streamlinkpipe-12345-2-67890"),
         ])
 
 
@@ -137,7 +138,7 @@ class TestNamedPipeWindows(unittest.TestCase):
             8192,
             8192,
             0,
-            None
+            None,
         ))
 
     def test_close_before_open(self):

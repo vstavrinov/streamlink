@@ -82,21 +82,21 @@ class TestPluginStream(unittest.TestCase):
         self._test_http("httpstream://https://hostname.se/auth.php auth=('test','test2')",
                         "https://hostname.se/auth.php", dict(auth=("test", "test2")))
         self._test_http("httpstream://https://hostname.se/auth.php verify=False params={'key': 'a value'}",
-                        "https://hostname.se/auth.php?key=a+value", dict(verify=False, params=dict(key='a value')))
+                        "https://hostname.se/auth.php?key=a+value", dict(verify=False, params=dict(key="a value")))
 
     def test_parse_params(self):
         self.assertEqual({}, parse_params())
         self.assertEqual(
             dict(verify=False, params=dict(key="a value")),
-            parse_params("""verify=False params={'key': 'a value'}""")
+            parse_params("""verify=False params={'key': 'a value'}"""),
         )
         self.assertEqual(
             dict(verify=False),
-            parse_params("""verify=False""")
+            parse_params("""verify=False"""),
         )
         self.assertEqual(
-            dict(conn=['B:1', 'S:authMe', 'O:1', 'NN:code:1.23', 'NS:flag:ok', 'O:0']),
-            parse_params(""""conn=['B:1', 'S:authMe', 'O:1', 'NN:code:1.23', 'NS:flag:ok', 'O:0']""")
+            dict(conn=["B:1", "S:authMe", "O:1", "NN:code:1.23", "NS:flag:ok", "O:0"]),
+            parse_params(""""conn=['B:1', 'S:authMe', 'O:1', 'NN:code:1.23', 'NS:flag:ok', 'O:0']"""),
         )
 
     def test_stream_weight_value(self):
