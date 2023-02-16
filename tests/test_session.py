@@ -23,7 +23,7 @@ PATH_TESTPLUGINS_OVERRIDE = PATH_TESTPLUGINS / "override"
 _original_allowed_gai_family = urllib3.util.connection.allowed_gai_family  # type: ignore[attr-defined]
 
 
-@pytest.fixture
+@pytest.fixture()
 def session():
     with patch("streamlink.session.Streamlink.load_builtin_plugins"):
         yield Streamlink()
@@ -260,14 +260,14 @@ class TestSession(unittest.TestCase):
     def test_options(self):
         session = self.subject()
         session.set_option("test_option", "option")
-        self.assertEqual(session.get_option("test_option"), "option")
-        self.assertEqual(session.get_option("non_existing"), None)
+        assert session.get_option("test_option") == "option"
+        assert session.get_option("non_existing") is None
 
-        self.assertEqual(session.get_plugin_option("testplugin", "a_option"), "default")
+        assert session.get_plugin_option("testplugin", "a_option") == "default"
         session.set_plugin_option("testplugin", "another_option", "test")
-        self.assertEqual(session.get_plugin_option("testplugin", "another_option"), "test")
-        self.assertEqual(session.get_plugin_option("non_existing", "non_existing"), None)
-        self.assertEqual(session.get_plugin_option("testplugin", "non_existing"), None)
+        assert session.get_plugin_option("testplugin", "another_option") == "test"
+        assert session.get_plugin_option("non_existing", "non_existing") is None
+        assert session.get_plugin_option("testplugin", "non_existing") is None
 
     def test_streams(self):
         session = self.subject()
@@ -336,9 +336,9 @@ class TestSession(unittest.TestCase):
     def test_set_and_get_locale(self):
         session = Streamlink()
         session.set_option("locale", "en_US")
-        self.assertEqual(session.localization.country.alpha2, "US")
-        self.assertEqual(session.localization.language.alpha2, "en")
-        self.assertEqual(session.localization.language_code, "en_US")
+        assert session.localization.country.alpha2 == "US"
+        assert session.localization.language.alpha2 == "en"
+        assert session.localization.language_code == "en_US"
 
     @patch("streamlink.session.HTTPSession")
     def test_interface(self, mock_httpsession):
@@ -351,19 +351,19 @@ class TestSession(unittest.TestCase):
             "foo://": adapter_foo,
         })
         session = self.subject(load_plugins=False)
-        self.assertEqual(session.get_option("interface"), None)
+        assert session.get_option("interface") is None
 
         session.set_option("interface", "my-interface")
-        self.assertEqual(adapter_http.poolmanager.connection_pool_kw, {"source_address": ("my-interface", 0)})
-        self.assertEqual(adapter_https.poolmanager.connection_pool_kw, {"source_address": ("my-interface", 0)})
-        self.assertEqual(adapter_foo.poolmanager.connection_pool_kw, {})
-        self.assertEqual(session.get_option("interface"), "my-interface")
+        assert adapter_http.poolmanager.connection_pool_kw == {"source_address": ("my-interface", 0)}
+        assert adapter_https.poolmanager.connection_pool_kw == {"source_address": ("my-interface", 0)}
+        assert adapter_foo.poolmanager.connection_pool_kw == {}
+        assert session.get_option("interface") == "my-interface"
 
         session.set_option("interface", None)
-        self.assertEqual(adapter_http.poolmanager.connection_pool_kw, {})
-        self.assertEqual(adapter_https.poolmanager.connection_pool_kw, {})
-        self.assertEqual(adapter_foo.poolmanager.connection_pool_kw, {})
-        self.assertEqual(session.get_option("interface"), None)
+        assert adapter_http.poolmanager.connection_pool_kw == {}
+        assert adapter_https.poolmanager.connection_pool_kw == {}
+        assert adapter_foo.poolmanager.connection_pool_kw == {}
+        assert session.get_option("interface") is None
 
     @patch("streamlink.session.urllib3_util_connection", allowed_gai_family=_original_allowed_gai_family)
     def test_ipv4_ipv6(self, mock_urllib3_util_connection):
@@ -416,13 +416,13 @@ class TestSession(unittest.TestCase):
 
 
 class TestSessionOptionHttpProxy:
-    @pytest.fixture
-    def no_deprecation(self, recwarn: pytest.WarningsRecorder):
+    @pytest.fixture()
+    def _no_deprecation(self, recwarn: pytest.WarningsRecorder):
         yield
         assert recwarn.list == []
 
-    @pytest.fixture
-    def logs_deprecation(self, recwarn: pytest.WarningsRecorder):
+    @pytest.fixture()
+    def _logs_deprecation(self, recwarn: pytest.WarningsRecorder):
         yield
         assert [(record.category, str(record.message)) for record in recwarn.list] == [
             (
@@ -431,50 +431,58 @@ class TestSessionOptionHttpProxy:
             ),
         ]
 
-    def test_https_proxy_default(self, session: Streamlink, no_deprecation):
+    @pytest.mark.usefixtures("_no_deprecation")
+    def test_https_proxy_default(self, session: Streamlink):
         session.set_option("http-proxy", "http://testproxy.com")
 
         assert session.http.proxies["http"] == "http://testproxy.com"
         assert session.http.proxies["https"] == "http://testproxy.com"
 
-    def test_https_proxy_set_first(self, session: Streamlink, logs_deprecation):
+    @pytest.mark.usefixtures("_logs_deprecation")
+    def test_https_proxy_set_first(self, session: Streamlink):
         session.set_option("https-proxy", "https://testhttpsproxy.com")
         session.set_option("http-proxy", "http://testproxy.com")
 
         assert session.http.proxies["http"] == "http://testproxy.com"
         assert session.http.proxies["https"] == "http://testproxy.com"
 
-    def test_https_proxy_default_override(self, session: Streamlink, logs_deprecation):
+    @pytest.mark.usefixtures("_logs_deprecation")
+    def test_https_proxy_default_override(self, session: Streamlink):
         session.set_option("http-proxy", "http://testproxy.com")
         session.set_option("https-proxy", "https://testhttpsproxy.com")
 
         assert session.http.proxies["http"] == "https://testhttpsproxy.com"
         assert session.http.proxies["https"] == "https://testhttpsproxy.com"
 
-    def test_https_proxy_set_only(self, session: Streamlink, logs_deprecation):
+    @pytest.mark.usefixtures("_logs_deprecation")
+    def test_https_proxy_set_only(self, session: Streamlink):
         session.set_option("https-proxy", "https://testhttpsproxy.com")
 
         assert session.http.proxies["http"] == "https://testhttpsproxy.com"
         assert session.http.proxies["https"] == "https://testhttpsproxy.com"
 
-    def test_http_proxy_socks(self, session: Streamlink, no_deprecation):
+    @pytest.mark.usefixtures("_no_deprecation")
+    def test_http_proxy_socks(self, session: Streamlink):
         session.set_option("http-proxy", "socks5://localhost:1234")
 
         assert session.http.proxies["http"] == "socks5://localhost:1234"
         assert session.http.proxies["https"] == "socks5://localhost:1234"
 
-    def test_https_proxy_socks(self, session: Streamlink, logs_deprecation):
+    @pytest.mark.usefixtures("_logs_deprecation")
+    def test_https_proxy_socks(self, session: Streamlink):
         session.set_option("https-proxy", "socks5://localhost:1234")
 
         assert session.http.proxies["http"] == "socks5://localhost:1234"
         assert session.http.proxies["https"] == "socks5://localhost:1234"
 
-    def test_get_http_proxy(self, session: Streamlink, no_deprecation):
+    @pytest.mark.usefixtures("_no_deprecation")
+    def test_get_http_proxy(self, session: Streamlink):
         session.http.proxies["http"] = "http://testproxy1.com"
         session.http.proxies["https"] = "http://testproxy2.com"
         assert session.get_option("http-proxy") == "http://testproxy1.com"
 
-    def test_get_https_proxy(self, session: Streamlink, logs_deprecation):
+    @pytest.mark.usefixtures("_logs_deprecation")
+    def test_get_https_proxy(self, session: Streamlink):
         session.http.proxies["http"] = "http://testproxy1.com"
         session.http.proxies["https"] = "http://testproxy2.com"
         assert session.get_option("https-proxy") == "http://testproxy2.com"
@@ -486,7 +494,7 @@ class TestSessionOptionHttpProxy:
     pytest.param(("http-query-params", "params"), id="http-query-params"),
 ], indirect=True)
 class TestOptionsKeyEqualsValue:
-    @pytest.fixture
+    @pytest.fixture()
     def option(self, request, session: Streamlink):
         option, attr = request.param
         httpsessionattr = getattr(session.http, attr)

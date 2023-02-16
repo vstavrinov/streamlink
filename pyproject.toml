@@ -32,6 +32,7 @@ build-file = "streamlink/_version.py"
 [tool.pytest.ini_options]
 filterwarnings = [
   "always",
+  "ignore:.*pkg_resources\\.declare_namespace.*:DeprecationWarning",
 ]
 
 
@@ -84,6 +85,8 @@ select = [
   "C4",
   # flake8-implicit-str-concat
   "ISC",
+  # flake8-pytest-style
+  "PT",
 ]
 extend-ignore = [
   "C408",  # unnecessary-collection-call
