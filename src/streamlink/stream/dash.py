@@ -3,12 +3,13 @@ import datetime
 import itertools
 import logging
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from time import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse, urlunparse
 
-from streamlink import PluginError, StreamError
+from streamlink.exceptions import PluginError, StreamError
+from streamlink.session import Streamlink
 from streamlink.stream.dash_manifest import MPD, Representation, Segment, freeze_timeline
 from streamlink.stream.ffmpegmux import FFMPEGMuxer
 from streamlink.stream.segmented import SegmentedStreamReader, SegmentedStreamWorker, SegmentedStreamWriter
@@ -76,7 +77,6 @@ class DASHStreamWorker(SegmentedStreamWorker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mpd = self.stream.mpd
-        self.period = self.stream.period
 
         self.manifest_reload_retries = self.session.options.get("dash-manifest-reload-attempts")
 
@@ -91,25 +91,19 @@ class DASHStreamWorker(SegmentedStreamWorker):
         if time_to_sleep > 0:
             self.wait(time_to_sleep)
 
-    def get_representation(self, mpd, ident):
-        for aset in mpd.periods[self.period].adaptationSets:
-            for rep in aset.representations:
-                if rep.ident == ident:
-                    return rep
-
     def iter_segments(self):
         init = True
         back_off_factor = 1
         while not self.closed:
             # find the representation by ID
-            representation = self.get_representation(self.mpd, self.reader.ident)
+            representation = self.mpd.get_representation(self.reader.ident)
 
             if self.mpd.type == "static":
                 refresh_wait = 5
             else:
                 refresh_wait = max(
                     self.mpd.minimumUpdatePeriod.total_seconds(),
-                    self.mpd.periods[self.period].duration.total_seconds(),
+                    representation.period.duration.total_seconds() if representation else 0,
                 ) or 5
 
             with self.sleeper(refresh_wait * back_off_factor):
@@ -153,7 +147,7 @@ class DASHStreamWorker(SegmentedStreamWorker):
             timelines=self.mpd.timelines,
         )
 
-        new_rep = self.get_representation(new_mpd, self.reader.ident)
+        new_rep = new_mpd.get_representation(self.reader.ident)
         with freeze_timeline(new_mpd):
             changed = len(list(itertools.islice(new_rep.segments(), 1))) > 0
 
@@ -186,19 +180,17 @@ class DASHStream(Stream):
 
     def __init__(
         self,
-        session,
+        session: Streamlink,
         mpd: MPD,
         video_representation: Optional[Representation] = None,
         audio_representation: Optional[Representation] = None,
-        period: float = 0,
         **args,
     ):
         """
-        :param streamlink.Streamlink session: Streamlink session instance
+        :param session: Streamlink session instance
         :param mpd: Parsed MPD manifest
         :param video_representation: Video representation
         :param audio_representation: Audio representation
-        :param period: Update period
         :param args: Additional keyword arguments passed to :meth:`requests.Session.request`
         """
 
@@ -206,7 +198,6 @@ class DASHStream(Stream):
         self.mpd = mpd
         self.video_representation = video_representation
         self.audio_representation = audio_representation
-        self.period = period
         self.args = args
 
     def __json__(self):
@@ -231,57 +222,73 @@ class DASHStream(Stream):
         # the MPD URL has already been prepared by the initial request in `parse_manifest`
         return self.mpd.url
 
+    @staticmethod
+    def fetch_manifest(session: Streamlink, url_or_manifest: str, **request_args) -> Tuple[str, Dict[str, Any]]:
+        if url_or_manifest.startswith("<?xml"):
+            return url_or_manifest, {}
+
+        retries = session.options.get("dash-manifest-reload-attempts")
+        args = session.http.valid_request_args(**request_args)
+        res = session.http.get(url_or_manifest, retries=retries, **args)
+        manifest: str = res.text
+        url: str = res.url
+
+        urlp = list(urlparse(url))
+        urlp[2], _ = urlp[2].rsplit("/", 1)
+        base_url: str = urlunparse(urlp)
+
+        return manifest, dict(url=url, base_url=base_url)
+
+    @staticmethod
+    def parse_mpd(manifest: str, mpd_params: Dict[str, Any]) -> MPD:
+        node = parse_xml(manifest, ignore_ns=True)
+
+        return MPD(node, **mpd_params)
+
     @classmethod
     def parse_manifest(
         cls,
-        session,
+        session: Streamlink,
         url_or_manifest: str,
+        period: int = 0,
         **args,
     ) -> Dict[str, "DASHStream"]:
         """
         Parse a DASH manifest file and return its streams.
 
-        :param streamlink.Streamlink session: Streamlink session instance
+        :param session: Streamlink session instance
         :param url_or_manifest: URL of the manifest file or an XML manifest string
+        :param period: Which MPD period to use (index number) for finding representations
         :param args: Additional keyword arguments passed to :meth:`requests.Session.request`
         """
 
-        if url_or_manifest.startswith("<?xml"):
-            mpd = MPD(parse_xml(url_or_manifest, ignore_ns=True))
-        else:
-            retries = session.options.get("dash-manifest-reload-attempts")
-            res = session.http.get(
-                url_or_manifest,
-                retries=retries,
-                **session.http.valid_request_args(**args),
-            )
-            url = res.url
+        manifest, mpd_params = cls.fetch_manifest(session, url_or_manifest)
 
-            urlp = list(urlparse(url))
-            urlp[2], _ = urlp[2].rsplit("/", 1)
+        try:
+            mpd = cls.parse_mpd(manifest, mpd_params)
+        except Exception as err:
+            raise PluginError(f"Failed to parse MPD manifest: {err}") from err
 
-            mpd = MPD(session.http.xml(res, ignore_ns=True), base_url=urlunparse(urlp), url=url)
-
+        source = mpd_params.get("url", "MPD manifest")
         video: List[Optional[Representation]] = []
         audio: List[Optional[Representation]] = []
 
         # Search for suitable video and audio representations
-        for aset in mpd.periods[0].adaptationSets:
+        for aset in mpd.periods[period].adaptationSets:
             if aset.contentProtection:
-                raise PluginError(f"{url} is protected by DRM")
+                raise PluginError(f"{source} is protected by DRM")
             for rep in aset.representations:
                 if rep.contentProtection:
-                    raise PluginError(f"{url} is protected by DRM")
+                    raise PluginError(f"{source} is protected by DRM")
                 if rep.mimeType.startswith("video"):
                     video.append(rep)
-                elif rep.mimeType.startswith("audio"):
+                elif rep.mimeType.startswith("audio"):  # pragma: no branch
                     audio.append(rep)
 
         if not video:
-            video = [None]
-
+            video.append(None)
         if not audio:
-            audio = [None]
+            audio.append(None)
 
         locale = session.localization
         locale_lang = locale.language
@@ -292,20 +299,17 @@ class DASHStream(Stream):
         for aud in audio:
             if aud and aud.lang:
                 available_languages.add(aud.lang)
-                try:
+                with suppress(LookupError):
                     if locale.explicit and aud.lang and Language.get(aud.lang) == locale_lang:
                         lang = aud.lang
-                except LookupError:
-                    continue
 
         if not lang:
             # filter by the first language that appears
             lang = audio[0].lang if audio[0] else None
 
-        log.debug("Available languages for DASH audio streams: {0} (using: {1})".format(
-            ", ".join(available_languages) or "NONE",
-            lang or "n/a",
-        ))
+        log.debug(
+            f"Available languages for DASH audio streams: {', '.join(available_languages) or 'NONE'} (using: {lang or 'n/a'})",
+        )
 
         # if the language is given by the stream, filter out other languages that do not match
         if len(available_languages) > 1:
@@ -317,9 +321,9 @@ class DASHStream(Stream):
             stream_name = []
 
             if vid:
-                stream_name.append("{:0.0f}{}".format(vid.height or vid.bandwidth_rounded, "p" if vid.height else "k"))
+                stream_name.append(f"{vid.height or vid.bandwidth_rounded:0.0f}{'p' if vid.height else 'k'}")
             if aud and len(audio) > 1:
-                stream_name.append("a{:0.0f}k".format(aud.bandwidth))
+                stream_name.append(f"a{aud.bandwidth:0.0f}k")
             ret.append(("+".join(stream_name), stream))
 
         # rename duplicate streams
@@ -338,10 +342,8 @@ class DASHStream(Stream):
         for q in dict_value_list:
             items = dict_value_list[q]
 
-            try:
+            with suppress(AttributeError):
                 items = sorted(items, key=sortby_bandwidth, reverse=True)
-            except AttributeError:
-                pass
 
             for n in range(len(items)):
                 if n == 0:
@@ -350,6 +352,7 @@ class DASHStream(Stream):
                     ret_new[f"{q}_alt"] = items[n]
                 else:
                     ret_new[f"{q}_alt{n}"] = items[n]
+
         return ret_new
 
     def open(self):
