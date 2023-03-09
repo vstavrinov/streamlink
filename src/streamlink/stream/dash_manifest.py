@@ -57,6 +57,10 @@ class Segment:
     def name(self) -> str:
         return Path(urlparse(self.url).path).resolve().name
 
+    @property
+    def available_in(self) -> float:
+        return max(0.0, (self.available_at - datetime.datetime.now(tz=UTC)).total_seconds())
+
 
 @dataclasses.dataclass
 class TimelineSegment:
@@ -719,7 +723,7 @@ class SegmentTemplate(MPDNode):
 
         if self.root.type == "static":
             available_iter = repeat(self.period.availabilityStartTime)
-            duration = self.period.duration.seconds or self.root.mediaPresentationDuration.seconds
+            duration = self.period.duration.total_seconds() or self.root.mediaPresentationDuration.total_seconds()
             if duration:
                 number_iter = range(self.startNumber, int(duration / self.duration_seconds) + 1)
             else:
