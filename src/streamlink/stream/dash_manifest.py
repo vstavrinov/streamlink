@@ -523,32 +523,46 @@ class SegmentURL(MPDNode):
 class SegmentList(MPDNode):
     __tag__ = "SegmentList"
 
+    parent: Union["Period", "AdaptationSet", "Representation"]
+
     def __init__(self, *args, period: "Period", **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.period = period
 
-        self.presentation_time_offset = self.attr("presentationTimeOffset")
-        self.timescale = self.attr(
-            "timescale",
-            parser=int,
-        )
+        self.defaultSegmentList = self.walk_back_get_attr("segmentList")
+
         self.duration = self.attr(
             "duration",
             parser=int,
+            default=self.defaultSegmentList.duration if self.defaultSegmentList else None,
         )
-        self.start_number = self.attr(
+        self.timescale: int = self.attr(
+            "timescale",
+            parser=int,
+            default=self.defaultSegmentList.timescale if self.defaultSegmentList else 1,
+        )
+        self.startNumber: int = self.attr(
             "startNumber",
             parser=int,
-            default=1,
+            default=self.defaultSegmentList.startNumber if self.defaultSegmentList else 1,
+        )
+        self.presentationTimeOffset = self.attr(
+            "presentationTimeOffset",
+            parser=MPDParsers.timedelta(self.timescale),
+            default=self.defaultSegmentList.presentationTimeOffset if self.defaultSegmentList else timedelta(),
         )
 
         self.duration_seconds = self.duration / self.timescale if self.duration and self.timescale else None
 
+        # children
         self.initialization = self.only_child(Initialization)
-        self.segment_urls = self.children(SegmentURL, minimum=1)
+        self.segmentTimeline = (
+            self.only_child(SegmentTimeline)
+            or (self.defaultSegmentList.segmentTimeline if self.defaultSegmentList else None)
+        )
+        self.segmentURLs = self.children(SegmentURL)
 
-    @property
     def segments(self) -> Iterator[Segment]:
         if self.initialization:  # pragma: no branch
             yield Segment(
@@ -560,7 +574,7 @@ class SegmentList(MPDNode):
                 content=False,
                 byterange=self.initialization.range,
             )
-        for number, segment_url in enumerate(self.segment_urls, self.start_number):
+        for number, segment_url in enumerate(self.segmentURLs, self.startNumber):
             yield Segment(
                 url=self.make_url(segment_url.media),
                 number=number,
@@ -636,6 +650,8 @@ class AdaptationSet(MPDNode):
         )
 
         self.baseURLs = self.children(BaseURL)
+        self.segmentBase = self.only_child(SegmentBase, period=self.parent)
+        self.segmentList = self.only_child(SegmentList, period=self.parent)
         self.segmentTemplate = self.only_child(SegmentTemplate, period=self.parent)
         self.representations = self.children(Representation, minimum=1, period=self.parent)
         self.contentProtection = self.children(ContentProtection)
@@ -679,13 +695,16 @@ class SegmentTemplate(MPDNode):
         self.presentationTimeOffset = self.attr(
             "presentationTimeOffset",
             parser=MPDParsers.timedelta(self.timescale),
-            default=timedelta(),
+            default=self.defaultSegmentTemplate.presentationTimeOffset if self.defaultSegmentTemplate else timedelta(),
         )
 
         self.duration_seconds = self.duration / self.timescale if self.duration and self.timescale else None
 
         # children
-        self.segmentTimeline = self.only_child(SegmentTimeline)
+        self.segmentTimeline = (
+            self.only_child(SegmentTimeline)
+            or (self.defaultSegmentTemplate.segmentTimeline if self.defaultSegmentTemplate else None)
+        )
 
     def segments(self, ident: TTimelineIdent, base_url: str, **kwargs) -> Iterator[Segment]:
         if kwargs.pop("init", True):  # pragma: no branch
@@ -894,7 +913,7 @@ class Representation(MPDNode):
         self.baseURLs = self.children(BaseURL)
         self.subRepresentation = self.children(SubRepresentation)
         self.segmentBase = self.only_child(SegmentBase, period=self.period)
-        self.segmentList = self.children(SegmentList, period=self.period)
+        self.segmentList = self.only_child(SegmentList, period=self.period)
         self.segmentTemplate = self.only_child(SegmentTemplate, period=self.period)
         self.contentProtection = self.children(ContentProtection)
 
@@ -914,7 +933,7 @@ class Representation(MPDNode):
         """
 
         # segmentBase = self.segmentBase or self.walk_back_get_attr("segmentBase")
-        segmentLists = self.segmentList or self.walk_back_get_attr("segmentList")
+        segmentList = self.segmentList or self.walk_back_get_attr("segmentList")
         segmentTemplate = self.segmentTemplate or self.walk_back_get_attr("segmentTemplate")
 
         if segmentTemplate:
@@ -925,9 +944,8 @@ class Representation(MPDNode):
                 Bandwidth=int(self.bandwidth * 1000),
                 **kwargs,
             )
-        elif segmentLists:
-            for segmentList in segmentLists:
-                yield from segmentList.segments
+        elif segmentList:
+            yield from segmentList.segments()
         else:
             yield Segment(
                 url=self.base_url,
