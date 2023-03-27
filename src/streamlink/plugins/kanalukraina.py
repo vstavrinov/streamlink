@@ -58,16 +58,16 @@ class KanalUkraina(Plugin):
         if html:
             body = get_js(html)
         if body:
-            for node in body:
-                if node.expression:
-                    if node.expression.arguments:
-                        for item in node.expression.arguments:
-                            if item.body.body:
-                                for node in item.body.body:
-                                    if node.expression.arguments:
-                                        for item in node.expression.arguments:
-                                            if item.properties:
-                                                for kind in item.properties:
+            for node1 in body:
+                if node1.expression:
+                    if node1.expression.arguments:
+                        for item1 in node1.expression.arguments:
+                            if item1.body.body:
+                                for node2 in item1.body.body:
+                                    if node2.expression.arguments:
+                                        for item2 in node2.expression.arguments:
+                                            if item2.properties:
+                                                for kind in item2.properties:
                                                     if kind.key:
                                                         if kind.key.name:
                                                             if kind.key.name == "url":

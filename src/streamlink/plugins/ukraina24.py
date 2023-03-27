@@ -58,16 +58,16 @@ class Ukraina24(Plugin):
         if html:
             body = get_js(html)
         if body:
-            for item in body:
-                if item.expression and item.expression.arguments:
-                    for item in item.expression.arguments:
-                        if item.body and item.body.body:
-                            for item in item.body.body:
-                                if item.expression and item.expression.arguments:
-                                    for item in item.expression.arguments:
-                                        if item.properties:
-                                            for item in item.properties:
-                                                if item.key.name and item.key.name == "source":
+            for item1 in body:
+                if item1.expression and item1.expression.arguments:
+                    for item2 in item1.expression.arguments:
+                        if item2.body and item2.body.body:
+                            for item3 in item2.body.body:
+                                if item3.expression and item3.expression.arguments:
+                                    for item4 in item3.expression.arguments:
+                                        if item4.properties:
+                                            for item5 in item4.properties:
+                                                if item5.key.name and item5.key.name == "source":
                                                     stream_url = item.value.value
                                                     log.debug("Stream URL: {0}".format(stream_url))
                                                     yield "live", HLSStream(self.session, stream_url)
