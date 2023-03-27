@@ -81,11 +81,12 @@ select = [
   "I",
   # flake8-builtins
   "A",
+  # flake8-bugbear
+  "B",
   # flake8-commas
   "COM",
   # flake8-comprehensions
-  "C40",
-  "C41",
+  "C4",
   # flake8-datetimez
   "DTZ",
   # flake8-implicit-str-concat
