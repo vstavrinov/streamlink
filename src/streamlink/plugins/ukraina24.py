@@ -68,7 +68,7 @@ class Ukraina24(Plugin):
                                         if item4.properties:
                                             for item5 in item4.properties:
                                                 if item5.key.name and item5.key.name == "source":
-                                                    stream_url = item.value.value
+                                                    stream_url = item5.value.value
                                                     log.debug("Stream URL: {0}".format(stream_url))
                                                     yield "live", HLSStream(self.session, stream_url)
 
