@@ -24,11 +24,9 @@ def timestamp():
 class TestDASHStreamParseManifest:
     @pytest.fixture(autouse=True)
     def _response(self, request: pytest.FixtureRequest, requests_mock: rm.Mocker):
-        invalid = requests_mock.register_uri(rm.ANY, rm.ANY, exc=rm.exceptions.InvalidRequest("Invalid request"))
         response = requests_mock.register_uri("GET", "http://test/manifest.mpd", **getattr(request, "param", {}))
         called_once = "nomockedhttprequest" not in request.keywords
         yield
-        assert not invalid.called
         assert response.called_once is called_once
 
     @pytest.fixture()
@@ -333,23 +331,25 @@ class TestDASHStreamOpen:
         stream.open()
 
         assert reader.call_args_list == [call(stream, rep_video, timestamp)]
-        reader_video = reader(stream, rep_video, timestamp)
-        assert reader_video.open.called_once
+        assert reader().open.call_count == 1
         assert muxer.call_args_list == []
 
     def test_stream_open_video_audio(self, session: Streamlink, timestamp: datetime, muxer: Mock, reader: Mock):
         rep_video = Mock(ident=(None, None, "1"), mimeType="video/mp4")
         rep_audio = Mock(ident=(None, None, "2"), mimeType="audio/mp3", lang="en")
+
+        mock_reader_video = Mock()
+        mock_reader_audio = Mock()
+        readers = {rep_video: mock_reader_video, rep_audio: mock_reader_audio}
+        reader.side_effect = lambda _stream, _representation, _timestamp: readers[_representation]
+
         stream = DASHStream(session, Mock(), rep_video, rep_audio)
         stream.open()
 
         assert reader.call_args_list == [call(stream, rep_video, timestamp), call(stream, rep_audio, timestamp)]
-        reader_video = reader(stream, rep_video, timestamp)
-        reader_audio = reader(stream, rep_audio, timestamp)
-        assert reader_video.open.called_once
-        assert reader_audio.open.called_once
-        assert muxer.call_args_list == [call(session, reader_video, reader_audio, copyts=True)]
-        assert reader_video.timestamp is reader_audio.timestamp
+        assert mock_reader_video.open.call_count == 1
+        assert mock_reader_audio.open.call_count == 1
+        assert muxer.call_args_list == [call(session, mock_reader_video, mock_reader_audio, copyts=True)]
 
 
 class TestDASHStreamWorker:
