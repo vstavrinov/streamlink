@@ -87,7 +87,7 @@ class StreamlinkOptions(Options):
             if scheme not in ("http://", "https://"):
                 continue
             if not value:
-                adapter.poolmanager.connection_pool_kw.pop("source_address")
+                adapter.poolmanager.connection_pool_kw.pop("source_address", None)
             else:
                 # https://docs.python.org/3/library/socket.html#socket.create_connection
                 adapter.poolmanager.connection_pool_kw.update(source_address=(value, 0))
@@ -636,8 +636,8 @@ class Streamlink:
             module_name = f"streamlink.plugins.{name}"
             try:
                 mod = load_module(module_name, path)
-            except ImportError:
-                log.exception(f"Failed to load plugin {name} from {path}\n")
+            except ImportError as err:
+                log.exception(f"Failed to load plugin {name} from {path}", exc_info=err)
                 continue
 
             if not hasattr(mod, "__plugin__") or not issubclass(mod.__plugin__, Plugin):
