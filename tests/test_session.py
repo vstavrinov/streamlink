@@ -238,42 +238,6 @@ class TestResolveURL:
         with pytest.raises(NoPluginError):
             session.resolve_url_no_redirect("no")
 
-    def test_resolve_deprecated(self, session: Streamlink):
-        @pluginmatcher(priority=LOW_PRIORITY, pattern=re.compile(
-            "https://low",
-        ))
-        class LowPriority(_EmptyPlugin):
-            pass
-
-        class DeprecatedNormalPriority(_EmptyPlugin):
-            # noinspection PyUnusedLocal
-            @classmethod
-            def can_handle_url(cls, url):
-                return True
-
-        class DeprecatedHighPriority(DeprecatedNormalPriority):
-            # noinspection PyUnusedLocal
-            @classmethod
-            def priority(cls, url):
-                return HIGH_PRIORITY
-
-        session.plugins = {
-            "empty": _EmptyPlugin,
-            "low": LowPriority,
-            "dep-normal-one": DeprecatedNormalPriority,
-            "dep-normal-two": DeprecatedNormalPriority,
-            "dep-high": DeprecatedHighPriority,
-        }
-
-        with pytest.warns() as recwarn:
-            plugin = session.resolve_url_no_redirect("low")[1]
-
-        assert plugin is DeprecatedHighPriority
-        assert [(record.category, str(record.message)) for record in recwarn.list] == [
-            (StreamlinkDeprecationWarning, "Resolved plugin dep-normal-one with deprecated can_handle_url API"),
-            (StreamlinkDeprecationWarning, "Resolved plugin dep-high with deprecated can_handle_url API"),
-        ]
-
 
 class TestStreams:
     @pytest.fixture(autouse=True)
@@ -338,18 +302,6 @@ class TestStreams:
         assert "vod" in streams
         assert "vod_alt" in streams
         assert "vod_alt2" in streams
-
-
-def test_pluginoptions(session: Streamlink):
-    assert session.get_plugin_option("testplugin", "a_option") is None
-
-    session.load_plugins(str(PATH_TESTPLUGINS))
-    assert session.get_plugin_option("testplugin", "a_option") == "default"
-
-    session.set_plugin_option("testplugin", "another_option", "test")
-    assert session.get_plugin_option("testplugin", "another_option") == "test"
-    assert session.get_plugin_option("non_existing", "non_existing") is None
-    assert session.get_plugin_option("testplugin", "non_existing") is None
 
 
 def test_options(session: Streamlink):
