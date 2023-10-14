@@ -7,9 +7,11 @@ import pytest
 from freezegun import freeze_time
 
 from streamlink.stream.dash.manifest import MPD, DASHSegment, MPDParsers, MPDParsingError, Representation
+from streamlink.utils.times import fromtimestamp
 from tests.resources import xml
 
 
+EPOCH_START = fromtimestamp(0)
 UTC = datetime.timezone.utc
 
 
@@ -69,10 +71,22 @@ class TestMPDParsers:
         assert MPDParsers.type("dynamic") == "dynamic"
         assert MPDParsers.type("static") == "static"
         with pytest.raises(MPDParsingError):
+            # noinspection PyTypeChecker
             MPDParsers.type("other")
 
     def test_duration(self):
-        assert MPDParsers.duration("PT1S") == datetime.timedelta(0, 1)
+        assert MPDParsers.duration()("PT1S") == datetime.timedelta(seconds=1)
+        assert MPDParsers.duration()("P1W") == datetime.timedelta(seconds=7 * 24 * 3600)
+
+        assert MPDParsers.duration(EPOCH_START)("P3M") == datetime.timedelta(days=31 + 28 + 31)
+        assert MPDParsers.duration(EPOCH_START + datetime.timedelta(31))("P3M") == datetime.timedelta(days=28 + 31 + 30)
+
+        assert MPDParsers.duration(EPOCH_START)("P3Y") == datetime.timedelta(days=3 * 365 + 1)
+        assert MPDParsers.duration(EPOCH_START + datetime.timedelta(3 * 365))("P3Y") == datetime.timedelta(days=3 * 365)
+
+        with freeze_time(EPOCH_START):
+            assert MPDParsers.duration()("P3M") == datetime.timedelta(days=31 + 28 + 31)
+            assert MPDParsers.duration()("P3Y") == datetime.timedelta(days=3 * 365 + 1)
 
     def test_datetime(self):
         assert MPDParsers.datetime("2018-01-01T00:00:00Z") == datetime.datetime(2018, 1, 1, 0, 0, 0, tzinfo=UTC)
@@ -98,6 +112,16 @@ class TestMPDParsers:
 
 
 class TestMPDParser:
+    @pytest.mark.parametrize(("min_buffer_time", "expected"), [
+        pytest.param("PT1S", 3.0, id="minBufferTime lower than suggestedPresentationDelay"),
+        pytest.param("PT5S", 5.0, id="minBufferTime greater than suggestedPresentationDelay"),
+    ])
+    def test_suggested_presentation_delay(self, min_buffer_time: str, expected: float):
+        with xml("dash/test_suggested_presentation_delay.mpd") as mpd_xml:
+            mpd_xml.attrib["minBufferTime"] = min_buffer_time
+            mpd = MPD(mpd_xml, base_url="http://test/", url="http://test/manifest.mpd")
+        assert mpd.suggestedPresentationDelay.total_seconds() == expected
+
     def test_no_segment_list_or_template(self):
         with xml("dash/test_no_segment_list_or_template.mpd") as mpd_xml:
             mpd = MPD(mpd_xml, base_url="http://test/", url="http://test/manifest.mpd")
