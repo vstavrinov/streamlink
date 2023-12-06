@@ -1,6 +1,7 @@
 import unittest
 from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
@@ -396,53 +397,6 @@ class TestTwitchHLSStream(TestMixinStreamHLS, unittest.TestCase):
         assert self.thread.reader.worker.playlist_reload_time == pytest.approx(23 / 3)
 
 
-class TestTwitchIsLive:
-    @pytest.fixture()
-    def plugin(self, request: pytest.FixtureRequest):
-        return Twitch(Streamlink(), "https://twitch.tv/channelname")
-
-    @pytest.fixture()
-    def mock(self, request: pytest.FixtureRequest, requests_mock: rm.Mocker):
-        mock = requests_mock.post("https://gql.twitch.tv/gql", **getattr(request, "param", {"json": {}}))
-        yield mock
-        assert mock.call_count > 0
-        payload = mock.last_request.json()  # type: ignore[union-attr]
-        assert tuple(sorted(payload.keys())) == ("extensions", "operationName", "variables")
-        assert payload.get("operationName") == "StreamMetadata"
-        assert payload.get("extensions") == {
-            "persistedQuery": {
-                "sha256Hash": "1c719a40e481453e5c48d9bb585d971b8b372f8ebb105b17076722264dfa5b3e",
-                "version": 1,
-            },
-        }
-        assert payload.get("variables") == {"channelLogin": "channelname"}
-
-    @pytest.mark.parametrize(("mock", "expected", "log"), [
-        pytest.param(
-            {"json": {"data": {"user": None}}},
-            False,
-            [("streamlink.plugins.twitch", "error", "Unknown channel")],
-            id="no-user",
-        ),
-        pytest.param(
-            {"json": {"data": {"user": {"stream": None}}}},
-            False,
-            [("streamlink.plugins.twitch", "error", "Channel is offline")],
-            id="no-stream",
-        ),
-        pytest.param(
-            {"json": {"data": {"user": {"stream": {"id": "1234567890"}}}}},
-            True,
-            [],
-            id="is-live",
-        ),
-    ], indirect=["mock"])
-    def test_is_live(self, plugin: Twitch, caplog: pytest.LogCaptureFixture, mock: rm.Mocker, expected: bool, log: list):
-        caplog.set_level(1, "streamlink")
-        assert plugin._check_is_live() is expected
-        assert [(record.name, record.levelname, record.message) for record in caplog.records] == log
-
-
 class TestTwitchAPIAccessToken:
     @pytest.fixture(autouse=True)
     def _client_integrity_token(self, monkeypatch: pytest.MonkeyPatch):
@@ -639,9 +593,10 @@ class TestTwitchHLSMultivariantResponse:
         requests_mock.get("mock://multivariant", **getattr(request, "param", {}))
         return Twitch(session, "https://twitch.tv/channelname")
 
-    @pytest.mark.parametrize(("plugin", "raises", "streams", "log"), [
+    @pytest.mark.parametrize(("plugin", "streamid", "raises", "streams", "log"), [
         pytest.param(
             {"text": "#EXTM3U\n"},
+            "123",
             nullcontext(),
             {},
             [],
@@ -649,10 +604,27 @@ class TestTwitchHLSMultivariantResponse:
         ),
         pytest.param(
             {"text": "Not an HLS playlist"},
+            "123",
             pytest.raises(PluginError),
             {},
             [],
             id="invalid HLS playlist",
+        ),
+        pytest.param(
+            {
+                "status_code": 404,
+                "json": [{
+                    "url": "mock://multivariant",
+                    "error": "twirp error not_found: transcode does not exist",
+                    "error_code": "transcode_does_not_exist",
+                    "type": "error",
+                }],
+            },
+            None,
+            nullcontext(),
+            None,
+            [],
+            id="offline",
         ),
         pytest.param(
             {
@@ -664,6 +636,7 @@ class TestTwitchHLSMultivariantResponse:
                     "type": "error",
                 }],
             },
+            "123",
             nullcontext(),
             None,
             [("streamlink.plugins.twitch", "error", "Content Restricted In Region")],
@@ -674,14 +647,25 @@ class TestTwitchHLSMultivariantResponse:
                 "status_code": 404,
                 "text": "Not found",
             },
+            "123",
             nullcontext(),
             None,
-            [("streamlink.plugins.twitch", "error", "Could not access HLS playlist")],
+            [],
             id="non-json error response",
         ),
     ], indirect=["plugin"])
-    def test_multivariant_response(self, caplog: pytest.LogCaptureFixture, plugin: Twitch, raises, streams, log):
+    def test_multivariant_response(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+        plugin: Twitch,
+        streamid: Optional[str],
+        raises: nullcontext,
+        streams: Optional[dict],
+        log: list,
+    ):
         caplog.set_level("error", "streamlink.plugins.twitch")
+        monkeypatch.setattr(plugin, "get_id", Mock(return_value=streamid))
         with raises:
             assert plugin._get_hls_streams("mock://multivariant", []) == streams
         assert [(record.name, record.levelname, record.message) for record in caplog.records] == log
