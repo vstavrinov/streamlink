@@ -92,6 +92,9 @@ namespaces = false
 streamlink = [
   "py.typed",
 ]
+"streamlink.plugins" = [
+  "_plugins.json",
+]
 
 
 # https://versioningit.readthedocs.io/en/stable/index.html
@@ -142,9 +145,11 @@ source = [
 
 [tool.coverage.report]
 omit = [
+  "build_backend/commands.py",
   "src/streamlink/packages/*",
   "src/streamlink/webbrowser/cdp/devtools/*",
   "src/streamlink_cli/packages/*",
+  "src/streamlink_cli/_parser.py",
 ]
 exclude_lines = [
   "pragma: no cover",
@@ -223,6 +228,7 @@ ignore = [
   "PLW2901",  # redefined-loop-name
   "RUF021",  # parenthesize-chained-operators
   "RUF022",  # unsorted-dunder-all
+  "RUF027",  # missing-f-string-syntax
 ]
 
 [tool.ruff.lint.per-file-ignores]
