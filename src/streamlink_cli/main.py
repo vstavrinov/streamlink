@@ -861,15 +861,18 @@ def setup_logger_and_console(
     if filename:
         filename.parent.mkdir(parents=True, exist_ok=True)
 
-    streamhandler = logger.basicConfig(
-        stream=stream,
-        filename=filename,
-        level=level,
-        style="{",
-        format=fmt,
-        datefmt=datefmt,
-        capture_warnings=True,
-    )
+    try:
+        streamhandler = logger.basicConfig(
+            stream=stream,
+            filename=filename,
+            level=level,
+            style="{",
+            format=fmt,
+            datefmt=datefmt,
+            capture_warnings=True,
+        )
+    except Exception as err:
+        raise StreamlinkCLIError(f"Logging setup error: {err}") from err
 
     console = ConsoleOutput(streamhandler.stream, json)
 
@@ -976,8 +979,13 @@ def run(parser: ArgumentParser) -> int:
 
 
 def main():
-    parser = build_parser()
-    setup(parser)
+    try:
+        parser = build_parser()
+        setup(parser)
+    except StreamlinkCLIError as err:
+        sys.stderr.write(f"{err}\n")
+        sys.exit(1)
+
     try:
         exit_code = run(parser)
     except StreamlinkCLIError as err:
@@ -987,5 +995,11 @@ def main():
                 console.msg_json({"error": msg})
             else:
                 console.msg(f"error: {msg}")
+
+    # https://docs.python.org/3/library/signal.html#note-on-sigpipe
+    try:
+        sys.stdout.flush()
+    except OSError:
+        del sys.stdout
 
     sys.exit(exit_code)
