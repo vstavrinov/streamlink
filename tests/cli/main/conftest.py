@@ -16,13 +16,13 @@ def argv(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture(autouse=True)
-def _setup(monkeypatch: pytest.MonkeyPatch, session: Streamlink):
+def _setup(monkeypatch: pytest.MonkeyPatch, requests_mock: Mock, session: Streamlink):
     monkeypatch.setattr("streamlink_cli.main.CONFIG_FILES", [])
     monkeypatch.setattr("streamlink_cli.main.streamlink", session)
     monkeypatch.setattr("streamlink_cli.main.setup_streamlink", Mock())
     monkeypatch.setattr("streamlink_cli.main.setup_plugins", Mock())
     monkeypatch.setattr("streamlink_cli.main.setup_signals", Mock())
-    monkeypatch.setattr("streamlink_cli.argparser.find_default_player", Mock())
+    monkeypatch.setattr("streamlink_cli.argparser.find_default_player", Mock(return_value=None))
 
     level = streamlink_cli.main.logger.root.level
 
