@@ -64,7 +64,7 @@ def get_formatter(plugin: Plugin):
     )
 
 
-def check_file_output(path: Path, force: bool) -> FileOutput:
+def check_file_output(path: Path, force: bool) -> Path:
     """
     Checks if path already exists and asks the user if it should be overwritten if it does.
     """
@@ -85,7 +85,7 @@ def check_file_output(path: Path, force: bool) -> FileOutput:
             log.error(f"File {path} already exists, use --force to overwrite it.")
             raise StreamlinkCLIError()
 
-    return FileOutput(filename=realpath)
+    return realpath
 
 
 def create_output(formatter: Formatter) -> Union[FileOutput, PlayerOutput]:
@@ -99,21 +99,36 @@ def create_output(formatter: Formatter) -> Union[FileOutput, PlayerOutput]:
 
     """
 
-    if (args.output or args.stdout) and (args.record or args.record_and_pipe):
-        raise StreamlinkCLIError("Cannot use record options with other file output options.")
-
     if args.output:
+        if args.stdout:
+            raise StreamlinkCLIError("The -o/--output argument is incompatible with -O/--stdout")
+        if args.record or args.record_and_pipe:
+            raise StreamlinkCLIError("The -o/--output argument is incompatible with -r/--record and -R/--record-and-pipe")
+
         if args.output == "-":
             return FileOutput(fd=stdout)
         else:
-            return check_file_output(formatter.path(args.output, args.fs_safe_rules), args.force)
+            filename = check_file_output(formatter.path(args.output, args.fs_safe_rules), args.force)
+            return FileOutput(filename=filename)
 
     elif args.stdout:
-        return FileOutput(fd=stdout)
+        if args.record_and_pipe:
+            raise StreamlinkCLIError("The -O/--stdout argument is incompatible with -R/--record-and-pipe")
+
+        if not args.record or args.record == "-":
+            return FileOutput(fd=stdout)
+        else:
+            filename = check_file_output(formatter.path(args.record, args.fs_safe_rules), args.force)
+            return FileOutput(fd=stdout, record=FileOutput(filename=filename))
 
     elif args.record_and_pipe:
-        record = check_file_output(formatter.path(args.record_and_pipe, args.fs_safe_rules), args.force)
-        return FileOutput(fd=stdout, record=record)
+        warnings.warn(
+            "-R/--record-and-pipe=... has been deprecated in favor of --stdout --record=...",
+            StreamlinkDeprecationWarning,
+            stacklevel=1,
+        )
+        filename = check_file_output(formatter.path(args.record_and_pipe, args.fs_safe_rules), args.force)
+        return FileOutput(fd=stdout, record=FileOutput(filename=filename))
 
     elif args.player:
         http = namedpipe = record = None
@@ -130,7 +145,8 @@ def create_output(formatter: Formatter) -> Union[FileOutput, PlayerOutput]:
             if args.record == "-":
                 record = FileOutput(fd=stdout)
             else:
-                record = check_file_output(formatter.path(args.record, args.fs_safe_rules), args.force)
+                filename = check_file_output(formatter.path(args.record, args.fs_safe_rules), args.force)
+                record = FileOutput(filename=filename)
 
         log.info(f"Starting player: {args.player}")
 
