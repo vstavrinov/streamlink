@@ -19,10 +19,6 @@ Streamlink will attempt to load standalone plugins from these directories:
         :bdg-info-line:`Example`
 
         - ``/home/USERNAME/.local/share/streamlink/plugins``
-
-        :bdg-danger-line:`Deprecated`
-
-        - ``${XDG_CONFIG_HOME:-${HOME}/.config}/streamlink/plugins``
     * - macOS
       - :bdg-primary:`Path`
 
@@ -31,10 +27,6 @@ Streamlink will attempt to load standalone plugins from these directories:
         :bdg-info-line:`Example`
 
         - ``/Users/USERNAME/Library/Application Support/streamlink/plugins``
-
-        :bdg-danger-line:`Deprecated`
-
-        - ``${XDG_CONFIG_HOME:-${HOME}/.config}/streamlink/plugins``
     * - Windows
       - :bdg-primary:`Path`
 

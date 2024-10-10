@@ -149,7 +149,6 @@ class TestMatchArgumentOverride:
         assert capsys.readouterr().err.endswith(errormsg)
 
 
-@pytest.mark.filterwarnings("ignore")
 @pytest.mark.parametrize(("argv", "option", "expected"), [
     pytest.param(
         ["--locale", "xx_XX"],
@@ -180,18 +179,6 @@ class TestMatchArgumentOverride:
         "http-ssl-cert",
         ("foo.crt", "bar.key"),
         id="Arg+value with tuple mapper",
-    ),
-    pytest.param(
-        ["--hls-timeout", "123"],
-        "stream-timeout",
-        123.0,
-        id="Deprecated argument",
-    ),
-    pytest.param(
-        ["--hls-timeout", "123", "--stream-timeout", "456"],
-        "stream-timeout",
-        456.0,
-        id="Deprecated argument with override",
     ),
 ])
 def test_setup_session_options(parser: ArgumentParser, session: Streamlink, argv: list, option: str, expected: Any):
@@ -224,6 +211,26 @@ def test_setup_session_options_override(monkeypatch: pytest.MonkeyPatch, session
     session.set_option(key, default)
     setup_session_options(session, Namespace(**{arg: new}))
     assert session.get_option(key) == expected
+
+
+@pytest.mark.parametrize(
+    ("namespace", "expected"),
+    [
+        pytest.param(Namespace(deprecated=None, new=123), 123, id="new-only"),
+        pytest.param(Namespace(deprecated=123, new=None), 123, id="deprecated-only"),
+        pytest.param(Namespace(deprecated=123, new=456), 456, id="new-overrides-deprecated"),
+    ],
+)
+def test_setup_session_options_deprecation_override(
+    monkeypatch: pytest.MonkeyPatch,
+    session: Streamlink,
+    namespace: Namespace,
+    expected: int,
+):
+    arg_to_sessopt = [("deprecated", "option", None), ("new", "option", None)]
+    monkeypatch.setattr("streamlink_cli.argparser._ARGUMENT_TO_SESSIONOPTION", arg_to_sessopt)
+    setup_session_options(session, namespace)
+    assert session.options.get_explicit("option") == expected
 
 
 def test_cli_main_setup_session_options(monkeypatch: pytest.MonkeyPatch, parser: ArgumentParser, session: Streamlink):

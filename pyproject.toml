@@ -35,7 +35,6 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -54,7 +53,7 @@ dynamic = [
   "gui-scripts",
 ]
 
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   "certifi",
   "exceptiongroup ; python_version<'3.11'",
@@ -168,7 +167,7 @@ src = [
   "src",
   "tests",
 ]
-target-version = "py38"
+target-version = "py39"
 fix = false
 line-length = 128
 output-format = "full"
@@ -286,7 +285,7 @@ allow-multiline = false
 
 # https://mypy.readthedocs.io/en/stable/config_file.html
 [tool.mypy]
-python_version = 3.8
+python_version = 3.9
 show_error_codes = true
 show_error_context = true
 show_column_numbers = true
