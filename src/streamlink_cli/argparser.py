@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import numbers
 import re
+import warnings
 from collections.abc import Callable
 from pathlib import Path
 from string import printable
@@ -10,12 +12,20 @@ from textwrap import dedent
 from typing import Any
 
 from streamlink import __version__ as streamlink_version, logger
+from streamlink.exceptions import StreamlinkDeprecationWarning
+from streamlink.options import Options
+from streamlink.plugin import Plugin
 from streamlink.session import Streamlink
+from streamlink.user_input import UserInputRequester
 from streamlink.utils.args import boolean, comma_list, comma_list_filter, filesize, keyvalue, num
 from streamlink.utils.times import hours_minutes_seconds_float
 from streamlink_cli.constants import STREAM_PASSTHROUGH
+from streamlink_cli.exceptions import StreamlinkCLIError
 from streamlink_cli.output.player import PlayerOutput
 from streamlink_cli.utils import find_default_player
+
+
+log = logging.getLogger(__name__)
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -1477,4 +1487,78 @@ def setup_session_options(session: Streamlink, args: argparse.Namespace):
             session.set_option(option, value)
 
 
-__all__ = ["ArgumentParser", "build_parser", "setup_session_options"]
+def setup_plugin_args(session: Streamlink, parser: ArgumentParser):
+    """Adds plugin argument data to the argument parser."""
+
+    plugin_args = parser.add_argument_group("Plugin options")
+    for pname, arguments in session.plugins.iter_arguments():
+        group = parser.add_argument_group(pname.capitalize(), parent=plugin_args)
+
+        for parg in arguments:
+            group.add_argument(parg.argument_name(pname), **parg.options)
+
+
+def setup_plugin_options(
+    session: Streamlink,
+    args: argparse.Namespace,
+    pluginname: str,
+    pluginclass: type[Plugin],
+) -> Options:
+    """Initializes plugin options from argument values."""
+
+    if not pluginclass.arguments:
+        return Options()
+
+    user_input_requester: UserInputRequester | None = session.get_option("user-input-requester")
+    if not user_input_requester:
+        raise RuntimeError("The Streamlink session is missing a UserInputRequester")
+
+    defaults = {}
+    values = {}
+    required = {}
+
+    for parg in pluginclass.arguments:
+        defaults[parg.dest] = parg.default
+        value = getattr(args, parg.namespace_dest(pluginname))
+
+        if parg.help == argparse.SUPPRESS:
+            if value != parg.default:
+                warnings.warn(
+                    f"The {parg.argument_name(pluginname)} plugin argument has been disabled and will be removed in the future",
+                    StreamlinkDeprecationWarning,
+                    stacklevel=1,
+                )
+            continue
+
+        values[parg.dest] = value
+
+        if parg.required:
+            required[parg.name] = parg
+        # if the value is set, check to see if any of the required arguments are not set
+        if parg.required or value:
+            try:
+                for rparg in pluginclass.arguments.requires(parg.name):
+                    required[rparg.name] = rparg
+            except RuntimeError:  # pragma: no cover
+                log.error(f"{pluginname} plugin has a configuration error and the arguments cannot be parsed")
+                break
+
+    for req in required.values():
+        if not values.get(req.dest):
+            prompt = f"{req.prompt or f'Enter {pluginname} {req.name}'}"
+            try:
+                if req.sensitive:
+                    value = user_input_requester.ask_password(prompt)
+                else:
+                    value = user_input_requester.ask(prompt)
+            except OSError as err:
+                raise StreamlinkCLIError from err
+            values[req.dest] = value
+
+    options = Options(defaults)
+    options.update(values)
+
+    return options
+
+
+__all__ = ["ArgumentParser", "build_parser", "setup_session_options", "setup_plugin_args", "setup_plugin_options"]
