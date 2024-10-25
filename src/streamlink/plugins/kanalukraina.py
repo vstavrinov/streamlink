@@ -44,9 +44,11 @@ def get_js(html):
     return parsed.body
 
 
-@pluginmatcher(re.compile(
-    r"https?://kanalukraina.tv/online",
-))
+@pluginmatcher(
+        re.compile(
+            r"https?://kanalukraina.tv/online",
+        )
+)
 class KanalUkraina(Plugin):
 
     def _get_streams(self):

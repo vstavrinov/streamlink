@@ -42,9 +42,11 @@ def get_js(html):
     return parsed.body
 
 
-@pluginmatcher(re.compile(
-    r"https?://ukraina24.segodnya.ua/online",
-))
+@pluginmatcher(
+        re.compile(
+            r"https?://ukraina24.segodnya.ua/online",
+       )
+)
 class Ukraina24(Plugin):
 
     def _get_streams(self):
