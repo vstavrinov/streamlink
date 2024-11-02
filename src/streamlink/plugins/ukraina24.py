@@ -43,9 +43,7 @@ def get_js(html):
 
 
 @pluginmatcher(
-        re.compile(
-            r"https?://ukraina24.segodnya.ua/online",
-       )
+    re.compile( r"https?://ukraina24.segodnya.ua/online"),
 )
 class Ukraina24(Plugin):
 
