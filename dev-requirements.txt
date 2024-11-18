@@ -14,10 +14,10 @@ pytest-cov
 coverage[toml]
 
 # code-linting
-ruff ==0.7.0
+ruff ==0.7.4
 
 # typing
-mypy ==1.12.1
+mypy[faster-cache] ==1.13.0
 lxml-stubs
 trio-typing
 types-freezegun

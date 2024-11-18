@@ -36,6 +36,7 @@ from streamlink_cli.console import ConsoleOutput, ConsoleUserInputRequester
 from streamlink_cli.constants import CONFIG_FILES, DEFAULT_STREAM_METADATA, LOG_DIR, PLUGIN_DIRS, STREAM_SYNONYMS
 from streamlink_cli.exceptions import StreamlinkCLIError
 from streamlink_cli.output import FileOutput, HTTPOutput, PlayerOutput
+from streamlink_cli.show_matchers import show_matchers
 from streamlink_cli.streamrunner import StreamRunner
 from streamlink_cli.utils import Formatter, datetime
 from streamlink_cli.utils.versioncheck import check_version
@@ -777,8 +778,7 @@ def log_root_warning():
             log.info("streamlink is running as root! Be careful!")
 
 
-def log_current_versions():
-    """Show current installed versions"""
+def log_current_versions() -> None:
     if not logger.root.isEnabledFor(logging.DEBUG):
         return
 
@@ -797,14 +797,17 @@ def log_current_versions():
     log.debug(f"OpenSSL:    {ssl.OPENSSL_VERSION}")
     log.debug(f"Streamlink: {streamlink_version}")
 
+    log.debug("Dependencies:")
     # https://peps.python.org/pep-0508/#names
     re_name = re.compile(r"[A-Z\d](?:[A-Z\d._-]*[A-Z\d])?", re.IGNORECASE)
-    log.debug("Dependencies:")
-    for name in [
-        match.group(0)
-        for match in map(re_name.match, importlib.metadata.requires("streamlink"))
+    dependencies: list[str] = importlib.metadata.requires("streamlink") or []
+    dependency_names: set[str] = {
+        match[0]
+        for match in [re_name.match(item) for item in dependencies]
         if match is not None
-    ]:  # fmt: skip
+    }  # fmt: skip
+    # noinspection PyTypeChecker
+    for name in sorted(dependency_names, key=str.lower):
         try:
             version = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
@@ -948,6 +951,8 @@ def run(parser: ArgumentParser) -> int:
         console.msg(helptext)
     elif args.plugins:
         print_plugins()
+    elif args.show_matchers:
+        show_matchers(streamlink, console, args.show_matchers)
     elif args.can_handle_url or args.can_handle_url_no_redirect:
         exit_code = can_handle_url()
     elif args.url:
