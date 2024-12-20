@@ -45,7 +45,7 @@ def get_js(html):
 
 
 @pluginmatcher(
-    re.compile( r"https?://kanalukraina.tv/online"),
+    re.compile(r"https?://kanalukraina.tv/online"),
 )
 class KanalUkraina(Plugin):
 
