@@ -46,7 +46,6 @@ def get_js(html):
     re.compile(r"https?://ukraina24.segodnya.ua/online"),
 )
 class Ukraina24(Plugin):
-
     def _get_streams(self):
         self.session.http.headers = {
             "Referer": self.url,

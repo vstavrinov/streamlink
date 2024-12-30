@@ -48,7 +48,6 @@ def get_js(html):
     re.compile(r"https?://kanalukraina.tv/online"),
 )
 class KanalUkraina(Plugin):
-
     def _get_streams(self):
         self.session.http.headers = {
             "Referer": self.url,
