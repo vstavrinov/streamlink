@@ -6,7 +6,7 @@ import struct
 from collections.abc import Mapping
 from concurrent.futures import Future
 from datetime import datetime, timedelta
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 from urllib.parse import urlparse
 
 from requests import Response
@@ -26,6 +26,13 @@ from streamlink.utils.crypto import AES, unpad
 from streamlink.utils.formatter import Formatter
 from streamlink.utils.l10n import Language
 from streamlink.utils.times import now
+
+
+if TYPE_CHECKING:
+    try:
+        from typing import Self  # type: ignore[attr-defined]
+    except ImportError:
+        from typing_extensions import Self
 
 
 log = logging.getLogger(".".join(__name__.split(".")[:-1]))
@@ -548,7 +555,10 @@ class HLSStreamReader(FilteredStream, SegmentedStreamReader[HLSSegment, Response
         super().__init__(stream)
 
 
-class MuxedHLSStream(MuxedStream["HLSStream"]):
+TMuxedHLSStream_co = TypeVar("TMuxedHLSStream_co", bound="HLSStream", covariant=True)
+
+
+class MuxedHLSStream(MuxedStream[TMuxedHLSStream_co]):
     """
     Muxes multiple HLS video and audio streams into one output stream.
     """
@@ -560,7 +570,7 @@ class MuxedHLSStream(MuxedStream["HLSStream"]):
         session: Streamlink,
         video: str,
         audio: str | list[str],
-        hlsstream: type[HLSStream] | None = None,
+        hlsstream: type[TMuxedHLSStream_co] | None = None,
         url_master: str | None = None,
         multivariant: M3U8 | None = None,
         force_restart: bool = False,
@@ -588,8 +598,9 @@ class MuxedHLSStream(MuxedStream["HLSStream"]):
                 tracks.append(audio)
         maps.extend(f"{i}:a" for i in range(1, len(tracks)))
 
-        hlsstream = hlsstream or HLSStream
-        substreams = [hlsstream(session, url, force_restart=force_restart, **kwargs) for url in tracks]
+        # https://github.com/python/mypy/issues/18017
+        TStream: type[TMuxedHLSStream_co] = hlsstream if hlsstream is not None else HLSStream  # type: ignore[assignment]
+        substreams = [TStream(session, url, force_restart=force_restart, **kwargs) for url in tracks]
         ffmpeg_options = ffmpeg_options or {}
 
         super().__init__(session, *substreams, format="mpegts", maps=maps, **ffmpeg_options)
@@ -703,7 +714,7 @@ class HLSStream(HTTPStream):
         start_offset: float = 0,
         duration: float | None = None,
         **kwargs,
-    ) -> dict[str, HLSStream | MuxedHLSStream]:
+    ) -> dict[str, Self | MuxedHLSStream[Self]]:
         """
         Parse a variant playlist and return its streams.
 
