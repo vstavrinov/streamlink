@@ -105,12 +105,12 @@ test = [
   "pytest-cov",
 ]
 lint = [
-  "ruff ==0.12.5",
+  "ruff ==0.12.7",
 ]
 typing = [
   { include-group = "test" },
   { include-group = "docs" },
-  "mypy[faster-cache] ==1.17.0",
+  "mypy[faster-cache] ==1.17.1",
   "typing-extensions >=4.0.0",
   "lxml-stubs",
   "trio-typing",
