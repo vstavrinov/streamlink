@@ -105,7 +105,7 @@ test = [
   "pytest-cov",
 ]
 lint = [
-  "ruff ==0.12.7",
+  "ruff ==0.12.11",
 ]
 typing = [
   { include-group = "test" },
@@ -290,6 +290,8 @@ select = [
   "T20",
   # flake8-pytest-style
   "PT",
+  # flake8-use-pathlib
+  "PTH",
   # flake8-quotes
   "Q",
   # flake8-tidy-imports
