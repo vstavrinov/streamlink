@@ -123,7 +123,7 @@ typing = [
 docs = [
   { include-group = "dev" },
   "sphinx >=6.0.0,<9",
-  "furo ==2025.07.19",
+  "furo ==2025.09.25",
   "myst-parser >=1.0.0,<5",
   "sphinx-design >=0.5.0,<=0.6.1",
 ]
@@ -238,7 +238,6 @@ line-length = 128
 output-format = "full"
 preview = true
 extend-exclude = [
-  "docs/conf.py",
   "src/streamlink/packages/",
   "src/streamlink_cli/packages/",
 ]
@@ -318,7 +317,7 @@ future-annotations = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"docs/**" = ["INP", "RUF012"]
+"docs/**" = ["INP"]
 "script/**" = ["INP"]
 "src/streamlink/__init__.py" = ["I"]
 "src/streamlink/_version.py" = ["I"]
