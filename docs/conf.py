@@ -42,6 +42,8 @@ extensions = [
     "ext_plugins",
     "ext_releaseref",
 ]
+if "no_intersphinx" in tags:  # type: ignore[name-defined]  # noqa: F821
+    extensions.remove("sphinx.ext.intersphinx")
 
 exclude_patterns = ["_build", "_applications.rst"]
 
@@ -127,6 +129,8 @@ html_sidebars = {
         "sidebar/scroll-end.html",
     ],
 }
+if "no_github_buttons" in tags:  # type: ignore[name-defined]  # noqa: F821
+    html_sidebars.get("**", []).remove("sidebar/github-buttons.html")
 
 html_domain_indices = False
 html_show_sourcelink = False
