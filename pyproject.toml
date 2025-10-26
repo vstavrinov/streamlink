@@ -35,7 +35,6 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -54,7 +53,7 @@ dynamic = [
   "gui-scripts",
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "certifi",
   "exceptiongroup ; python_version<'3.11'",
@@ -63,11 +62,11 @@ dependencies = [
   "pycountry",
   "pycryptodome >=3.4.3,<4",
   "PySocks >=1.5.6,!=1.5.7",
-  "requests >=2.26.0,<3",
+  "requests >=2.30.0,<3",
   "trio >=0.25.0,<1 ; python_version>='3.13'",
   "trio >=0.22.0,<1 ; python_version<'3.13'",
   "trio-websocket >=0.9.0,<1",
-  "urllib3 >=1.26.0,<3",
+  "urllib3 >=2.0.0,<3",
   "websocket-client >=1.2.1,<2",
   "esprima",
 ]
@@ -76,7 +75,8 @@ dependencies = [
 decompress = [
   # don't define brotli or zstandard library versions here
   # and instead rely on urllib3's version requirements
-  "urllib3[brotli,zstd] >=1.26.0,<3"
+  "urllib3[brotli     ] >=2.0.0,<3 ; python_version>='3.14'",
+  "urllib3[brotli,zstd] >=2.0.0,<3 ; python_version<'3.14'",
 ]
 
 [project.urls]
@@ -97,12 +97,14 @@ dev = [
 ]
 test = [
   { include-group = "dev" },
-  "pytest >=8.0.0",
-  "pytest-trio",
-  "freezegun >=1.5.0",
-  "requests-mock",
-  "coverage[toml]",
+  # pytest and plugins
+  "pytest >=8.4.0",
   "pytest-cov",
+  "pytest-trio",
+  "requests-mock",
+  # other
+  "coverage[toml]",
+  "freezegun >=1.5.0",
 ]
 lint = [
   "ruff ==0.14.1",
@@ -191,6 +193,13 @@ method = { module = "build_backend.onbuild", value = "onbuild" }
 # https://docs.pytest.org/en/latest/reference/customize.html#configuration
 # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
 [tool.pytest.ini_options]
+minversion = "8.4.0"
+addopts = """
+--disable-plugin-autoload
+-p pytest_cov
+-p trio
+-p requests_mock
+"""
 testpaths = [
   "build_backend",
   "tests",
@@ -354,7 +363,7 @@ allow-multiline = false
 
 # https://mypy.readthedocs.io/en/stable/config_file.html
 [tool.mypy]
-python_version = 3.9
+python_version = "3.10"
 show_error_codes = true
 show_error_context = true
 show_column_numbers = true
