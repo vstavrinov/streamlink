@@ -121,7 +121,7 @@ class IFrameStreamInfo(NamedTuple):
     video: str | None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class HLSPlaylist:
     uri: str
     stream_info: StreamInfo | IFrameStreamInfo
@@ -129,11 +129,10 @@ class HLSPlaylist:
     is_iframe: bool
 
 
-@dataclass
+@dataclass(kw_only=True)
 class HLSSegment(Segment):
     title: str | None
     key: Key | None
-    discontinuity: bool
     byterange: ByteRange | None
     date: datetime | None
     map: Map | None
