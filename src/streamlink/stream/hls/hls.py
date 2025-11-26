@@ -450,10 +450,27 @@ class HLSStreamWorker(SegmentedStreamWorker[HLSSegment, Response]):
     def _queue_deadline_wait(self) -> float:
         return self.playlist_targetduration
 
+    def wait_and_reload(self):
+        # Exclude fetch+processing time from the overall reload time and reload in a strict time interval
+        time_completed = now()
+        time_elapsed = max(0.0, (time_completed - self._reload_last).total_seconds())
+        time_wait = max(0.0, self._reload_time - time_elapsed)
+        if self.wait(time_wait):
+            if time_wait > 0:
+                # If we had to wait, then don't call now() twice and instead reference the timestamp from before
+                # the wait() call, to prevent a shifting time offset due to the execution time
+                self._reload_last = time_completed + timedelta(seconds=time_wait)
+            else:
+                # Otherwise, get the current time, as the reload interval already has shifted
+                self._reload_last = now()
+
+            try:
+                self.reload()
+            except StreamError as err:
+                log.warning(f"Reloading failed: {err}")
+
     def iter_segments(self):
-        self._reload_last \
-            = self._queue_last \
-            = now()  # fmt: skip
+        self._reload_last = now()
 
         try:
             self.reload()
@@ -492,12 +509,7 @@ class HLSStreamWorker(SegmentedStreamWorker[HLSSegment, Response]):
             for segment in self.playlist_segments:
                 if not self.valid_segment(segment):
                     continue
-
-                yield segment
-                queued = True
-
-                if self.closed:  # pragma: no cover
-                    return
+                queued |= yield segment
 
             # End of stream
             if self.closed or self.playlist_end is not None and (not queued or self.sequence > self.playlist_end):
@@ -507,24 +519,7 @@ class HLSStreamWorker(SegmentedStreamWorker[HLSSegment, Response]):
             if self.check_queue_deadline(queued):
                 return
 
-            # Exclude playlist fetch+processing time from the overall playlist reload time
-            # and reload playlist in a strict time interval
-            time_completed = now()
-            time_elapsed = max(0.0, (time_completed - self._reload_last).total_seconds())
-            time_wait = max(0.0, self._reload_time - time_elapsed)
-            if self.wait(time_wait):
-                if time_wait > 0:
-                    # If we had to wait, then don't call now() twice and instead reference the timestamp from before
-                    # the wait() call, to prevent a shifting time offset due to the execution time.
-                    self._reload_last = time_completed + timedelta(seconds=time_wait)
-                else:
-                    # Otherwise, get the current time, as the reload interval already has shifted.
-                    self._reload_last = now()
-
-                try:
-                    self.reload()
-                except StreamError as err:
-                    log.warning(f"Failed to reload playlist: {err}")
+            self.wait_and_reload()
 
 
 class HLSStreamReader(FilteredStream, SegmentedStreamReader[HLSSegment, Response]):
