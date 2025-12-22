@@ -1,7 +1,6 @@
 [build-system]
 requires = [
   "setuptools >=77",
-  "wheel",
   # The versioningit build-requirement gets removed from the source distribution,
   # as the version string is already built into it (see the onbuild versioningit hook):
   "versioningit >=2.0.0,<4",  # disabled in sdist
@@ -133,7 +132,6 @@ build = [
   { include-group = "dev" },
   "shtab",
   "build",
-  "wheel",
 ]
 script = [
   "inflection",
