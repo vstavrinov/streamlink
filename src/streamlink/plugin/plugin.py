@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import abc
 import ast
 import logging
 import operator
 import re
 import time
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from contextlib import suppress
 from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar, List, Literal, NamedTuple, Type, TypeVar, Union
@@ -17,10 +18,11 @@ import streamlink.utils.times
 from streamlink.cache import Cache
 from streamlink.exceptions import FatalPluginError, NoStreamsError, PluginError
 from streamlink.options import Argument, Arguments, Options
+from streamlink.stream.stream import Stream
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable, Iterator, MutableMapping
     from http.cookiejar import Cookie
 
     from streamlink.session.session import Streamlink
@@ -96,7 +98,7 @@ _COOKIE_KEYS = (
 )
 
 
-def stream_weight(stream):
+def stream_weight(stream: str) -> tuple[float, str]:
     for group, weights in QUALITY_WEIGHTS_EXTRA.items():
         if stream in weights:
             return weights[stream], group
@@ -104,7 +106,7 @@ def stream_weight(stream):
     match = re.match(r"^(\d+)(k|p)?(\d+)?(\+)?(?:[a_](\d+)k)?(?:_(alt)(\d)?)?$", stream)
 
     if match:
-        weight = 0
+        weight = 0.0
 
         if match.group(6):
             if match.group(7):
@@ -136,16 +138,16 @@ def stream_weight(stream):
     return 0, "none"
 
 
-def iterate_streams(streams):
+def iterate_streams(streams: list[tuple[str, Stream | Iterable[Stream]]]) -> Iterator[tuple[str, Stream]]:
     for name, stream in streams:
-        if isinstance(stream, list):
+        if isinstance(stream, Stream):
+            yield name, stream
+        elif isinstance(stream, list):  # pragma: no branch
             for sub_stream in stream:
                 yield name, sub_stream
-        else:
-            yield name, stream
 
 
-def stream_type_priority(stream_types, stream):
+def stream_type_priority(stream_types: list[str], stream: tuple[str, Stream]) -> float:
     stream_type = type(stream[1]).shortname()
 
     try:
@@ -159,17 +161,21 @@ def stream_type_priority(stream_types, stream):
     return prio
 
 
-def stream_sorting_filter(expr, stream_weight):
+# noinspection PyShadowingNames
+def stream_sorting_filter(
+    expr: str,
+    stream_weight: Callable[[str], tuple[float, str]],
+) -> Callable[[str], bool]:
     match = re.match(r"(?P<op><=|>=|<|>)?(?P<value>[\w+]+)", expr)
 
     if not match:
-        raise PluginError("Invalid filter expression: {0}".format(expr))
+        raise PluginError(f"Invalid filter expression: {expr}")
 
     op, value = match.group("op", "value")
     op = FILTER_OPERATORS.get(op, operator.eq)
     filter_weight, filter_group = stream_weight(value)
 
-    def func(quality):
+    def func(quality: str) -> bool:
         weight, group = stream_weight(quality)
 
         if group == filter_group:
@@ -242,14 +248,14 @@ class Matches(_MCollection[Union[re.Match, None]]):
         return next(((matcher.pattern, match) for matcher, match in matches if match is not None), (None, None))
 
 
-class PluginMeta(type):
+class _PluginMeta(abc.ABCMeta):
     def __init__(cls, name, bases, namespace, **kwargs):
         super().__init__(name, bases, namespace, **kwargs)
         cls.matchers = Matchers(*getattr(cls, "matchers", []))
         cls.arguments = Arguments(*getattr(cls, "arguments", []))
 
 
-class Plugin(metaclass=PluginMeta):
+class Plugin(abc.ABC, metaclass=_PluginMeta):
     """
     Plugin base class for retrieving streams and metadata from the URL specified.
     """
@@ -341,22 +347,24 @@ class Plugin(metaclass=PluginMeta):
         if not self.matcher or not self.match:
             raise PluginError("The input URL did not match any of this plugin's matchers")
 
-    def set_option(self, key, value):
+    def set_option(self, key: str, value: Any) -> None:
         self.options.set(key, value)
 
-    def get_option(self, key):
+    def get_option(self, key: str) -> Any:
         return self.options.get(key)
 
     @classmethod
-    def get_argument(cls, key):
-        return cls.arguments and cls.arguments.get(key)
+    def get_argument(cls, key: str) -> Argument | None:
+        if not cls.arguments:
+            return None
+        return cls.arguments.get(key)
 
     @classmethod
-    def stream_weight(cls, stream):
+    def stream_weight(cls, stream: str) -> tuple[float, str]:
         return stream_weight(stream)
 
     @classmethod
-    def default_stream_types(cls, streams):
+    def default_stream_types(cls, streams: list[tuple[str, Stream | Iterable[Stream]]]) -> list[str]:
         stream_types = ["hls", "http"]
 
         for _name, stream in iterate_streams(streams):
@@ -367,7 +375,22 @@ class Plugin(metaclass=PluginMeta):
 
         return stream_types
 
-    def streams(self, stream_types=None, sorting_excludes=None):
+    @abc.abstractmethod
+    def _get_streams(self) -> Iterable[tuple[str, Stream | Iterable[Stream]]] | Mapping[str, Stream | Iterable[Stream]] | None:
+        """
+        Implement the stream and metadata retrieval here.
+
+        This method can either act as a generator that yields tuples of stream names and streams,
+        or it can return a sequence of tuples of stream names and streams, or a mapping of stream names and streams.
+        """
+
+        raise NotImplementedError
+
+    def streams(
+        self,
+        stream_types: list[str] | None = None,
+        sorting_excludes: list[str] | Callable[[str], bool] | None = None,
+    ) -> MutableMapping[str, Stream]:
         """
         Attempts to extract available streams.
 
@@ -402,14 +425,14 @@ class Plugin(metaclass=PluginMeta):
         :returns: A :class:`dict` of stream names and :class:`Stream <streamlink.stream.Stream>` instances
         """
 
-        try:
-            ostreams = self._get_streams()
-            if isinstance(ostreams, dict):
-                ostreams = ostreams.items()
+        ostreams: list[tuple[str, Stream | Iterable[Stream]]] = []
 
-            # Flatten the iterator to a list so we can reuse it.
-            if ostreams:
-                ostreams = list(ostreams)
+        try:
+            if returned_streams := self._get_streams():
+                if isinstance(returned_streams, Mapping):
+                    ostreams = list(returned_streams.items())  # ty:ignore[invalid-assignment]
+                else:
+                    ostreams = list(returned_streams)
         except NoStreamsError:
             return {}
         except (OSError, ValueError) as err:
@@ -422,10 +445,10 @@ class Plugin(metaclass=PluginMeta):
             stream_types = self.default_stream_types(ostreams)
 
         # Add streams depending on stream type and priorities
-        sorted_streams = sorted(iterate_streams(ostreams), key=partial(stream_type_priority, stream_types))
+        streams_prioritized = sorted(iterate_streams(ostreams), key=partial(stream_type_priority, stream_types))
 
-        streams = {}
-        for name, stream in sorted_streams:
+        streams: dict[str, Stream] = {}
+        for name, stream in streams_prioritized:
             stream_type = type(stream).shortname()
 
             # Use * as wildcard to match other stream types
@@ -463,22 +486,28 @@ class Plugin(metaclass=PluginMeta):
             # Force lowercase name and replace space with underscore.
             streams[name.lower()] = stream
 
-        # Create the best/worst synonyms
-        def stream_weight_only(s):
-            return self.stream_weight(s)[0] or (len(streams) == 1 and 1)
+        length = len(streams)
 
-        stream_names = filter(stream_weight_only, streams.keys())
-        sorted_streams = sorted(stream_names, key=stream_weight_only)
+        # Create the best/worst synonyms
+        def stream_weight_only(s: str) -> float:
+            if weight := self.stream_weight(s)[0]:
+                return weight
+            if length == 1:
+                return 1
+            return 0
+
+        stream_names: Iterator[str] = filter(stream_weight_only, streams.keys())
+        sorted_streams: list[str] = sorted(stream_names, key=stream_weight_only)
         unfiltered_sorted_streams = sorted_streams
 
-        if isinstance(sorting_excludes, list):
+        if isinstance(sorting_excludes, list) and not callable(sorting_excludes):
             for expr in sorting_excludes:
                 filter_func = stream_sorting_filter(expr, self.stream_weight)
                 sorted_streams = list(filter(filter_func, sorted_streams))
-        elif callable(sorting_excludes):
+        elif callable(sorting_excludes) and not isinstance(sorting_excludes, list):
             sorted_streams = list(filter(sorting_excludes, sorted_streams))
 
-        final_sorted_streams = {}
+        final_sorted_streams: dict[str, Stream] = {}
 
         for stream_name in sorted(streams, key=stream_weight_only):
             final_sorted_streams[stream_name] = streams[stream_name]
@@ -495,17 +524,6 @@ class Plugin(metaclass=PluginMeta):
             final_sorted_streams["best-unfiltered"] = streams[best]
 
         return final_sorted_streams
-
-    def _get_streams(self):
-        """
-        Implement the stream and metadata retrieval here.
-
-        Needs to return either a dict of :class:`Stream <streamlink.stream.Stream>` instances mapped by stream name,
-        or needs to act as a generator which yields tuples of stream names and :class:`Stream <streamlink.stream.Stream>`
-        instances.
-        """
-
-        raise NotImplementedError
 
     def get_metadata(self) -> Mapping[str, str | None]:
         return dict(

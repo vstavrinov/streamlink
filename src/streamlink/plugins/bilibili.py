@@ -10,8 +10,8 @@ import re
 from streamlink.exceptions import NoStreamsError
 from streamlink.plugin import Plugin, pluginmatcher
 from streamlink.plugin.api import validate
-from streamlink.stream import HTTPStream
 from streamlink.stream.hls import HLSStream
+from streamlink.stream.http import HTTPStream
 
 
 log = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class Bilibili(Plugin):
     SHOW_STATUS_ROUND = 2
 
     @classmethod
-    def stream_weight(cls, stream):
+    def stream_weight(cls, stream: str) -> tuple[float, str]:
         offset = 1 if "_alt" in stream else 0
         if stream.startswith("httpstream"):
             return 4 - offset, stream

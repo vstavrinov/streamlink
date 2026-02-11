@@ -15,8 +15,8 @@ import re
 
 from streamlink.plugin import Plugin, PluginError, pluginmatcher
 from streamlink.plugin.api import validate
-from streamlink.stream import HTTPStream
 from streamlink.stream.hls import HLSStream
+from streamlink.stream.http import HTTPStream
 
 
 log = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class VKvideolive(Plugin):
     }
 
     @classmethod
-    def stream_weight(cls, stream):
+    def stream_weight(cls, stream: str) -> tuple[float, str]:
         if stream in cls._WEIGHTS:
             return cls._WEIGHTS[stream], "vkvideolive"
 
