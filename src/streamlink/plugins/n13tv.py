@@ -5,16 +5,16 @@ $type live, vod
 $region Israel
 """
 
-import logging
 import re
 from urllib.parse import urljoin, urlunparse
 
+from streamlink.logger import getLogger
 from streamlink.plugin import Plugin, PluginError, pluginmatcher
 from streamlink.plugin.api import validate
 from streamlink.stream.hls import HLSStream
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 @pluginmatcher(
@@ -86,17 +86,15 @@ class N13TV(Plugin):
         vod_data = self.session.http.json(res, schema=self.vod_schema)
 
         if video_name == vod_data["ShowTitle"]:
-            host, base_path = self.server_addr_re.search(
-                vod_data["ServerAddress"],
-            ).groups()
-            if not host or not base_path:
-                raise PluginError("Could not split 'ServerAddress' components")
+            try:
+                host, base_path = self.server_addr_re.search(vod_data["ServerAddress"]).groups()  # type: ignore
+            except AttributeError:
+                raise PluginError("Could not split 'ServerAddress' components") from None
 
-            base_file, file_ext = self.media_file_re.search(
-                vod_data["MediaFile"],
-            ).groups()
-            if not base_file or not file_ext:
-                raise PluginError("Could not split 'MediaFile' components")
+            try:
+                base_file, file_ext = self.media_file_re.search(vod_data["MediaFile"]).groups()  # type: ignore
+            except AttributeError:
+                raise PluginError("Could not split 'MediaFile' components") from None
 
             media_path = "{0}{1}{2}{3}{4}{5}".format(
                 base_path,

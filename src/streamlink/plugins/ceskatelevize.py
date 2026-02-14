@@ -7,16 +7,16 @@ $metadata title
 $region Czechia
 """
 
-import logging
 import re
 from uuid import uuid4
 
+from streamlink.logger import getLogger
 from streamlink.plugin import Plugin, pluginmatcher
 from streamlink.plugin.api import validate
 from streamlink.stream.dash import DASHStream
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 @pluginmatcher(
@@ -50,7 +50,7 @@ class Ceskatelevize(Plugin):
                 "streamType": "dash",
                 "quality": "web",
                 "maxQualityCount": 5,
-                "sessionId": uuid4(),
+                "sessionId": str(uuid4()),
             },
             schema=validate.Schema(
                 validate.parse_json(),

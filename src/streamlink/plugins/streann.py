@@ -10,12 +10,12 @@ $metadata title
 """
 
 import base64
-import logging
 import random
 import re
 import time
 from urllib.parse import urlparse
 
+from streamlink.logger import getLogger
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
 from streamlink.plugin.api import validate
 from streamlink.stream.hls import HLSStream
@@ -23,7 +23,7 @@ from streamlink.utils.crypto import decrypt_openssl
 from streamlink.utils.parse import parse_qsd
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 @pluginmatcher(
@@ -97,7 +97,7 @@ class Streann(Plugin):
     def get_token(self, **config):
         log.debug("get_token")
         pdata = dict(
-            arg1=base64.b64encode(self._domain.encode("utf8")),
+            arg1=base64.b64encode(self._domain.encode("utf8")),  # type: ignore
             arg2=base64.b64encode(self.time.encode("utf8")),
         )
 

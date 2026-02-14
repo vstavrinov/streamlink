@@ -4,15 +4,15 @@ $url openrec.tv
 $type live, vod
 """
 
-import logging
 import re
 
+from streamlink.logger import getLogger
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
 from streamlink.plugin.api import validate
 from streamlink.stream.hls import HLSStream
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 @pluginmatcher(
@@ -79,8 +79,14 @@ class OPENRECtv(Plugin):
         self.video_id = None
 
     def login(self, email, password):
-        res = self.session.http.post(self.login_url, data={"mail": email, "password": password})
-        data = self.session.http.json(res, self._login_schema)
+        data = self.session.http.post(
+            self.login_url,
+            data={"mail": email, "password": password},
+            schema=validate.Schema(
+                validate.parse_json(),
+                self._login_schema,
+            ),
+        )
         if data["status"] == 0:
             log.debug("Logged in as {0}".format(data["data"]["user_name"]))
         else:
