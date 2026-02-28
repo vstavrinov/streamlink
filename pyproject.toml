@@ -306,6 +306,8 @@ select = [
   "Q",
   # flake8-tidy-imports
   "TID",
+  # pyupgrade
+  "UP",
   # Ruff-specific rules
   "RUF",
 ]
