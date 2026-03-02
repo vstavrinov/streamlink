@@ -134,11 +134,11 @@ class FFMPEGMuxer(StreamIO):
                     break
 
         if resolved and validate:
-            log.trace(f"Querying FFmpeg version: {[resolved, '-version']}")
+            log.trace("Querying FFmpeg version: %r", [resolved, "-version"])
             versionoutput = FFmpegVersionOutput([resolved, "-version"], timeout=timeout)
             if not versionoutput.run():
                 log.error("Could not validate FFmpeg!")
-                log.error(f"Unexpected FFmpeg version output while running {[resolved, '-version']}")
+                log.error("Unexpected FFmpeg version output while running %r", [resolved, "-version"])
                 resolved = None
             else:
                 cls.FFMPEG_VERSION = versionoutput.version
@@ -237,7 +237,7 @@ class FFMPEGMuxer(StreamIO):
                 self._cmd.extend([f"-metadata{stream_id}", datum])
 
         self._cmd.extend(["-f", ofmt, outpath])
-        log.debug(f"ffmpeg command: {self._cmd!r}")
+        log.debug("ffmpeg command: %r", self._cmd)
 
         if session.options.get("ffmpeg-verbose-path"):
             self.errorlog = Path(session.options.get("ffmpeg-verbose-path")).expanduser().open("w")
