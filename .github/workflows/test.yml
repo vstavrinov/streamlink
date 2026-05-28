@@ -42,7 +42,7 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 300
       - name: Fetch tags
@@ -54,7 +54,7 @@ jobs:
             || { ec=$?; [ $ec -eq 141 ] && true || (exit $ec); }
           git fetch origin --depth=300 --update-shallow
           git describe --tags --long --dirty
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install temp dependency wheels
@@ -75,7 +75,7 @@ jobs:
       - name: Upload coverage data
         if: github.event_name != 'schedule'
         continue-on-error: ${{ matrix.continue || false }}
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           name: os:${{ matrix.runs-on }} py:${{ matrix.python-version }}
         env:
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 300
       - name: Fetch tags
@@ -94,7 +94,7 @@ jobs:
           git ls-remote --tags --sort=version:refname 2>&- | awk 'END{printf "+%s:%s\n",$2,$2}' | git fetch origin --depth=300
           git fetch origin --depth=300 --update-shallow
           git describe --tags --long --dirty
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.14"
       - name: Install Python dependencies
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 300
       - name: Fetch tags
@@ -133,7 +133,7 @@ jobs:
           git ls-remote --tags --sort=version:refname 2>&- | awk 'END{printf "+%s:%s\n",$2,$2}' | git fetch origin --depth=300
           git fetch origin --depth=300 --update-shallow
           git describe --tags --long --dirty
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.14"
       - name: Install Python dependencies
