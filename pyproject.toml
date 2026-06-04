@@ -108,14 +108,14 @@ test = [
   "freezegun >=1.5.0",
 ]
 lint = [
-  "ruff ==0.15.13",
+  "ruff ==0.15.15",
 ]
 typing = [
   { include-group = "test" },
   { include-group = "docs" },
   { include-group = "script" },
   # tools and typing dependencies
-  "ty ==0.0.38",
+  "ty ==0.0.43",
   "mypy[faster-cache] ==2.1.0",
   "typing-extensions >=4.0.0",
   # dependency overrides
