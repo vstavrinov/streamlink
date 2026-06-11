@@ -108,14 +108,14 @@ test = [
   "freezegun >=1.5.0",
 ]
 lint = [
-  "ruff ==0.15.15",
+  "ruff ==0.15.16",
 ]
 typing = [
   { include-group = "test" },
   { include-group = "docs" },
   { include-group = "script" },
   # tools and typing dependencies
-  "ty ==0.0.43",
+  "ty ==0.0.48",
   "mypy[faster-cache] ==2.1.0",
   "typing-extensions >=4.0.0",
   # dependency overrides
@@ -128,7 +128,7 @@ typing = [
 ]
 docs = [
   { include-group = "dev" },
-  "sphinx >=7.0.0,<10",
+  "sphinx >=7.0.0,<9",  # ignore Sphinx v9: sphinx-doc/sphinx#14332
   "furo ==2025.12.19",
   "myst-parser >=4.0.0,<6",
   "sphinx-design >=0.6.0,<0.8",
