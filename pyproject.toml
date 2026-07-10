@@ -108,15 +108,15 @@ test = [
   "freezegun >=1.5.0",
 ]
 lint = [
-  "ruff ==0.15.17",
+  "ruff ==0.15.21",
 ]
 typing = [
   { include-group = "test" },
   { include-group = "docs" },
   { include-group = "script" },
   # tools and typing dependencies
-  "ty ==0.0.50",
-  "mypy[faster-cache] ==2.1.0",
+  "ty ==0.0.58",
+  "mypy[faster-cache] ==2.2.0",
   "typing-extensions >=4.0.0",
   # dependency overrides
   "requests >=2.34.0,!=2.34.1",
@@ -326,7 +326,6 @@ ignore = [
   "RUF021",  # parenthesize-chained-operators
   "RUF022",  # unsorted-dunder-all
   "RUF027",  # missing-f-string-syntax
-  "RUF076",  # pytest-fixture-autouse
 ]
 future-annotations = true
 
