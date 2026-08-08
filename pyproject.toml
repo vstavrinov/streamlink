@@ -39,6 +39,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Topic :: Internet :: WWW/HTTP",
   "Topic :: Multimedia :: Sound/Audio",
   "Topic :: Multimedia :: Video",
@@ -115,7 +116,7 @@ typing = [
   { include-group = "docs" },
   { include-group = "script" },
   # tools and typing dependencies
-  "ty ==0.0.64",
+  "ty ==0.0.69",
   "mypy[faster-cache] ==2.3.0",
   "typing-extensions >=4.0.0",
   # dependency overrides
