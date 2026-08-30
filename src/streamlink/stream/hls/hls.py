@@ -33,7 +33,7 @@ from streamlink.utils.times import now
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Iterator, Mapping
     from concurrent.futures import Future
     from datetime import datetime
 
@@ -233,7 +233,7 @@ class HLSStreamWriter(SegmentedStreamWriter[HLSSegment, Response]):
 
             written_once = self.reader.buffer.written_once
             try:
-                return self._write(segment, result, *data)
+                self._write(segment, result, *data)
             finally:
                 is_paused = self.reader.is_paused()
 
@@ -261,47 +261,66 @@ class HLSStreamWriter(SegmentedStreamWriter[HLSSegment, Response]):
                 log.info("Filtering out segments and pausing stream output")
                 self.reader.pause()
 
-    def _write(self, segment: HLSSegment, result: Response, is_map: bool):
+    def _write(self, segment: HLSSegment, response: Response, is_map: bool):
         # TODO: Rewrite HLSSegment, HLSStreamWriter and HLSStreamWorker based on independent initialization section segments,
         #       similar to the DASH implementation
         key = segment.map.key if is_map and segment.map else segment.key
 
         if key and key.method != "NONE" and not self.passthrough_encrypted:
-            try:
-                decryptor = self.create_decryptor(key, segment.num)
-            except (StreamError, ValueError) as err:
-                log.error(f"Failed to create decryptor: {err}")
-                self.close()
-                return
+            success = self._write_decrypt(segment, response, key)
+        else:
+            success = self._write_plain(segment, response)
 
-            try:
-                # Unlike plaintext segments, encrypted segments can't be written to the buffer in small chunks
-                # because of the byte padding at the end of the decrypted data, which means that decrypting in
-                # smaller chunks is unnecessary if the entire segment needs to be kept in memory anyway, unless
-                # we defer the buffer writes by one read call and apply the unpad call only to the last read call.
-                encrypted_chunk = result.content
-                decrypted_chunk = decryptor.decrypt(encrypted_chunk)
-                chunk = unpad(decrypted_chunk, AES.block_size, style="pkcs7")
+        if success:
+            if is_map:
+                log.debug(f"Segment initialization {segment.num} complete")
+            else:
+                log.debug(f"Segment {segment.num} complete")
+
+    def _write_decrypt(self, segment: HLSSegment, response: Response, key: Key) -> bool:
+        try:
+            decryptor = self.create_decryptor(key, segment.num)
+        except (StreamError, ValueError) as err:
+            log.error(f"Failed to create decryptor: {err}")
+            self.close()
+            return False
+
+        try:
+            encrypted_chunk = self.get_segment_content(segment, response)
+        except (ChunkedEncodingError, ContentDecodingError, ConnectionError) as err:
+            log.error(f"Download of segment {segment.num} failed: {err}")
+            return False
+
+        try:
+            # Unlike plaintext segments, encrypted segments can't be written to the buffer in small chunks
+            # because of the byte padding at the end of the decrypted data, which means that decrypting in
+            # smaller chunks is unnecessary if the entire segment needs to be kept in memory anyway, unless
+            # we defer the buffer writes by one read call and apply the unpad call only to the last read call.
+            decrypted_chunk = decryptor.decrypt(encrypted_chunk)
+            chunk = unpad(decrypted_chunk, AES.block_size, style="pkcs7")
+            self.reader.buffer.write(chunk)
+        except ValueError as err:
+            log.error(f"Error while decrypting segment {segment.num}: {err}")
+            return False
+
+        return True
+
+    def _write_plain(self, segment: HLSSegment, response: Response) -> bool:
+        try:
+            for chunk in self.iter_segment_content(segment, response):
                 self.reader.buffer.write(chunk)
-            except (ChunkedEncodingError, ContentDecodingError, ConnectionError) as err:
-                log.error(f"Download of segment {segment.num} failed: {err}")
-                return
-            except ValueError as err:
-                log.error(f"Error while decrypting segment {segment.num}: {err}")
-                return
+        except (ChunkedEncodingError, ContentDecodingError, ConnectionError) as err:
+            log.error(f"Download of segment {segment.num} failed: {err}")
+            return False
 
-        else:
-            try:
-                for chunk in result.iter_content(self.WRITE_CHUNK_SIZE):
-                    self.reader.buffer.write(chunk)
-            except (ChunkedEncodingError, ContentDecodingError, ConnectionError) as err:
-                log.error(f"Download of segment {segment.num} failed: {err}")
-                return
+        return True
 
-        if is_map:
-            log.debug(f"Segment initialization {segment.num} complete")
-        else:
-            log.debug(f"Segment {segment.num} complete")
+    # noinspection PyMethodMayBeStatic
+    def get_segment_content(self, segment: HLSSegment, response: Response) -> bytes:
+        return segment.get_content(response)
+
+    def iter_segment_content(self, segment: HLSSegment, response: Response) -> Iterator[bytes]:
+        yield from segment.iter_content(response, self.WRITE_CHUNK_SIZE)
 
 
 class HLSStreamWorker(SegmentedStreamWorker[HLSSegment, Response]):
