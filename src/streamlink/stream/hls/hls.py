@@ -3,7 +3,9 @@ from __future__ import annotations
 import re
 import struct
 import warnings
+from dataclasses import dataclass
 from datetime import timedelta
+from struct import unpack
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar
 from urllib.parse import urlparse
 
@@ -26,8 +28,10 @@ from streamlink.stream.segmented import SegmentedStreamReader, SegmentedStreamWo
 from streamlink.utils.cache import LRUCache
 from streamlink.utils.crypto import AES, unpad
 from streamlink.utils.formatter import Formatter
+from streamlink.utils.id3v2 import ID3v2, ID3v2FrameError, parse_frame_priv
 from streamlink.utils.l10n import Language
 from streamlink.utils.num import to_float
+from streamlink.utils.thread import wait_for_all_events
 from streamlink.utils.times import now
 
 
@@ -45,6 +49,34 @@ if TYPE_CHECKING:
 
 
 log = getLogger(".".join(__name__.split(".")[:-1]))
+
+
+@dataclass
+class ID3v2FrameHLSPackedAudioTimestamp:
+    timestamp: float
+
+
+class ID3v2HLSPackedAudio(ID3v2):
+    @parse_frame_priv(b"com.apple.streaming.transportStreamTimestamp", ID3v2FrameHLSPackedAudioTimestamp)
+    def _parse_frame_priv_com_apple_streaming_transport_stream_timestamp(self, owner: bytes, data: bytearray):
+        if len(data) != 8:
+            raise ID3v2FrameError(f"Invalid data size for PRIV frame {owner.decode('ascii')}")
+        if data[0] & 0xFF or data[1] & 0xFF or data[2] & 0xFF or data[3] & 0xFE:
+            raise ID3v2FrameError(f"Invalid timestamp value for PRIV frame {owner.decode('ascii')}")
+
+        return unpack(">Q", data)[0] & 0x1FFFFFFFF
+
+
+def get_packed_audio_timestamp(tags: list[ID3v2HLSPackedAudio]) -> float | None:
+    return next(
+        (
+            frame.result.timestamp / 90000.0
+            for tag in tags
+            for frame in tag.frames
+            if type(frame.result) is ID3v2FrameHLSPackedAudioTimestamp
+        ),
+        None,
+    )
 
 
 class ByteRangeOffset:
@@ -297,7 +329,7 @@ class HLSStreamWriter(SegmentedStreamWriter[HLSSegment, Response]):
             # we defer the buffer writes by one read call and apply the unpad call only to the last read call.
             decrypted_chunk = decryptor.decrypt(encrypted_chunk)
             chunk = unpad(decrypted_chunk, AES.block_size, style="pkcs7")
-            self.reader.buffer.write(chunk)
+            self._write_into_buffer(iter([chunk]))
         except ValueError as err:
             log.error(f"Error while decrypting segment {segment.num}: {err}")
             return False
@@ -306,13 +338,33 @@ class HLSStreamWriter(SegmentedStreamWriter[HLSSegment, Response]):
 
     def _write_plain(self, segment: HLSSegment, response: Response) -> bool:
         try:
-            for chunk in self.iter_segment_content(segment, response):
-                self.reader.buffer.write(chunk)
+            self._write_into_buffer(self.iter_segment_content(segment, response))
         except (ChunkedEncodingError, ContentDecodingError, ConnectionError) as err:
             log.error(f"Download of segment {segment.num} failed: {err}")
             return False
 
         return True
+
+    def _write_into_buffer(self, iterator: Iterator[bytes]) -> None:
+        if self.stream.parse_packed_audio:
+            iterator = self._parse_packed_audio_timestamp(iterator)
+
+        buffer = self.reader.buffer
+        for chunk in iterator:
+            buffer.write(chunk)
+
+    def _parse_packed_audio_timestamp(self, iterator: Iterator[bytes]) -> Iterator[bytes]:
+        # strip and parse ID3v2 tags at the beginning of each segment
+        tags, iterator = ID3v2HLSPackedAudio.parse_tags(iterator)
+
+        # don't expect tags in any following segments if no tags were found, e.g. if it's no packed audio stream
+        if not tags:
+            self.stream.parse_packed_audio = False
+
+        elif self.stream.packed_audio_timestamp is None and (timestamp := get_packed_audio_timestamp(tags)):
+            self.stream.packed_audio_timestamp = timestamp
+
+        return iterator
 
     # noinspection PyMethodMayBeStatic
     def get_segment_content(self, segment: HLSSegment, response: Response) -> bytes:
@@ -635,6 +687,20 @@ class MuxedHLSStream(MuxedStream[TMuxedHLSStream_co]):
         super().__init__(session, *substreams, **ffmpeg_options)
         self.multivariant = multivariant if multivariant and multivariant.is_master else None
 
+    def _open_streams(self) -> list[HLSStreamReader]:  # type: ignore[override, ty:invalid-method-override]
+        fds: list[HLSStreamReader] = super()._open_streams()  # type: ignore[assignment, ty:invalid-assignment]
+        timeout = self.session.options.get("stream-timeout")
+
+        # wait for data to arrive in all streams
+        wait_for_all_events(*[fd.buffer.event_used for fd in fds], timeout=timeout)
+
+        itsoffset = [substream.packed_audio_timestamp for substream in self.substreams[1:]]
+        if any(o for o in itsoffset if o is not None):
+            self.options["itsoffset"] = [None, *itsoffset]
+            self.options["copyts"] = True
+
+        return fds
+
     def to_manifest_url(self):
         url = self.multivariant.uri if self.multivariant and self.multivariant.uri else None
 
@@ -681,6 +747,9 @@ class HLSStream(HTTPStream):
         self.force_restart = force_restart
         self.start_offset = start_offset
         self.duration = duration
+
+        self.parse_packed_audio: bool = True
+        self.packed_audio_timestamp: float | None = None
 
     def __json__(self):  # ruff: ignore[bad-dunder-method-name]
         json = super().__json__()
