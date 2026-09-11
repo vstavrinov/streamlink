@@ -12,7 +12,7 @@ import esprima  # type: ignore
 
 from streamlink.plugin import Plugin, pluginmatcher
 from streamlink.plugin.api import useragents
-from streamlink.stream import HLSStream
+from streamlink.stream.hls import HLSStream
 
 
 log = logging.getLogger(__name__)
